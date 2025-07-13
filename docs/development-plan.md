@@ -70,7 +70,7 @@ VoTemは匿名投票・ランダム選択システムです。投票主催者が
 - [ ] 開発サーバー起動確認 → **動作確認・コミット**
 
 #### shadcn/ui セットアップ
-- [ ] `npx shadcn-ui@latest init`実行
+- [ ] `npx shadcn@latest init`実行
 - [ ] 基本コンポーネント追加（Button、Card、Input等）
 - [ ] サンプルページでコンポーネント動作確認 → **動作確認・コミット**
 
