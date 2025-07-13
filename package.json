@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:test": "tsx scripts/test-db.ts",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
-    "db:logs": "docker-compose logs db"
+    "db:logs": "docker-compose logs db",
+    "api:test": "tsx scripts/test-api.ts",
+    "db:clean": "tsx scripts/clean-db.ts"
   },
   "dependencies": {
     "@types/pg": "^8.15.4",
