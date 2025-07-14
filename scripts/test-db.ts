@@ -14,7 +14,7 @@ async function testDatabase(): Promise<void> {
 
   try {
     console.log('🔍 Testing database connection...');
-    
+
     // 接続テスト
     const result = await pool.query('SELECT NOW() as current_time, version()');
     console.log('✅ Database connected successfully!');
@@ -36,13 +36,15 @@ async function testDatabase(): Promise<void> {
       WHERE table_schema = 'public'
       ORDER BY table_name
     `);
-    console.log('Created tables:', tables.rows.map((row: { table_name: string }) => row.table_name));
+    console.log(
+      'Created tables:',
+      tables.rows.map((row: { table_name: string }) => row.table_name)
+    );
 
     // サンプルデータ確認
     console.log('\n📊 Sample data:');
     const rooms = await pool.query('SELECT * FROM rooms');
     console.log('Rooms:', rooms.rows);
-
   } catch (error) {
     console.error('❌ Database test failed:', (error as Error).message);
   } finally {

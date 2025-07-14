@@ -1,7 +1,7 @@
 /**
  * 参加者追加API
  * POST /api/rooms/[id]/participants
- * 
+ *
  * ルームに新しい参加者を追加します。
  * 参加者は投票者かつ候補者として機能します。
  * 同じ名前の重複登録は防止されます。
@@ -27,17 +27,13 @@ export async function POST(
     }
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: '名前は必須です' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '名前は必須です' }, { status: 400 });
     }
 
     // ルーム存在チェックと期限チェック
-    const roomResult = await query(
-      'SELECT * FROM rooms WHERE id = $1',
-      [roomId]
-    );
+    const roomResult = await query('SELECT * FROM rooms WHERE id = $1', [
+      roomId,
+    ]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json(
@@ -89,7 +85,6 @@ export async function POST(
     const participant: Participant = result.rows[0];
 
     return NextResponse.json({ participant });
-
   } catch (error) {
     console.error('参加者追加エラー:', error);
     return NextResponse.json(

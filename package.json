@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "db:test": "tsx scripts/test-db.ts",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
@@ -35,6 +37,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
+    "eslint-config-prettier": "^10.1.5",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5"
   }

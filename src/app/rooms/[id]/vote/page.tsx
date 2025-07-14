@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Box,
@@ -10,96 +10,102 @@ import {
   SimpleGrid,
   Spinner,
   Badge,
-} from '@chakra-ui/react'
-import { useState, useEffect } from 'react'
-import { useRouter, useParams, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+} from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface Participant {
-  id: string
-  name: string
-  joined_at: string
+  id: string;
+  name: string;
+  joined_at: string;
 }
 
 interface Room {
-  id: string
-  title: string
-  created_at: string
-  expires_at: string
-  status: 'waiting' | 'voting' | 'completed'
+  id: string;
+  title: string;
+  created_at: string;
+  expires_at: string;
+  status: 'waiting' | 'voting' | 'completed';
 }
 
 interface RoomData {
-  room: Room
-  participants: Participant[]
+  room: Room;
+  participants: Participant[];
 }
 
 export default function VotePage() {
-  const [roomData, setRoomData] = useState<RoomData | null>(null)
-  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isVoting, setIsVoting] = useState(false)
-  const [error, setError] = useState('')
-  const [hasVoted, setHasVoted] = useState(false)
+  const [roomData, setRoomData] = useState<RoomData | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isVoting, setIsVoting] = useState(false);
+  const [error, setError] = useState('');
+  const [hasVoted, setHasVoted] = useState(false);
 
-  const router = useRouter()
-  const params = useParams()
-  const searchParams = useSearchParams()
-  
-  const roomId = params.id as string
-  const participantId = searchParams.get('participantId')
-  
+  const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+
+  const roomId = params.id as string;
+  const participantId = searchParams.get('participantId');
+
   // LocalStorageのキー
-  const getStorageKey = () => `votem_participant_${roomId}`
-  
+  const getStorageKey = () => `votem_participant_${roomId}`;
+
   // セッション情報を復元
   const restoreSession = () => {
     try {
-      const stored = localStorage.getItem(getStorageKey())
+      const stored = localStorage.getItem(getStorageKey());
       if (stored) {
-        const sessionData = JSON.parse(stored)
+        const sessionData = JSON.parse(stored);
         if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
-          return sessionData
+          return sessionData;
         } else {
-          localStorage.removeItem(getStorageKey())
+          localStorage.removeItem(getStorageKey());
         }
       }
     } catch (error) {
-      console.error('セッション復元エラー:', error)
-      localStorage.removeItem(getStorageKey())
+      console.error('セッション復元エラー:', error);
+      localStorage.removeItem(getStorageKey());
     }
-    return null
-  }
+    return null;
+  };
 
   // ルーム情報を取得
   const fetchRoomData = async () => {
     try {
-      const response = await fetch(`/api/rooms/${roomId}`)
-      const data = await response.json()
+      const response = await fetch(`/api/rooms/${roomId}`);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'ルーム情報の取得に失敗しました')
+        throw new Error(data.error || 'ルーム情報の取得に失敗しました');
       }
 
-      setRoomData(data)
+      setRoomData(data);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'ルーム情報の取得に失敗しました'
-      setError(errorMessage)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'ルーム情報の取得に失敗しました';
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // 投票実行
   const handleVote = async () => {
-    const currentParticipantId = participantId || restoreSession()?.participantId
+    const currentParticipantId =
+      participantId || restoreSession()?.participantId;
     if (!selectedParticipant || !currentParticipantId) {
-      setError('投票対象を選択してください')
-      return
+      setError('投票対象を選択してください');
+      return;
     }
 
-    setIsVoting(true)
-    setError('')
+    setIsVoting(true);
+    setError('');
 
     try {
       const response = await fetch(`/api/rooms/${roomId}/vote`, {
@@ -111,83 +117,96 @@ export default function VotePage() {
           participantId: currentParticipantId,
           selectedParticipantId: selectedParticipant,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || '投票に失敗しました')
+        throw new Error(data.error || '投票に失敗しました');
       }
 
-      setHasVoted(true)
-      alert('投票が完了しました！')
-      
+      setHasVoted(true);
+      alert('投票が完了しました！');
+
       // 結果画面に遷移
       setTimeout(() => {
-        router.push(`/rooms/${roomId}/results`)
-      }, 2000)
-
+        router.push(`/rooms/${roomId}/results`);
+      }, 2000);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '投票に失敗しました'
-      setError(errorMessage)
+      const errorMessage =
+        error instanceof Error ? error.message : '投票に失敗しました';
+      setError(errorMessage);
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
-  }
+  };
 
   // 有効期限チェック
   const getTimeRemaining = () => {
-    if (!roomData?.room.expires_at) return null
-    
-    const now = new Date()
-    const expiresAt = new Date(roomData.room.expires_at)
-    const diff = expiresAt.getTime() - now.getTime()
-    
-    if (diff <= 0) return '期限切れ'
-    
-    const minutes = Math.floor(diff / (1000 * 60))
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    
-    return `${minutes}分${seconds}秒`
-  }
+    if (!roomData?.room.expires_at) return null;
+
+    const now = new Date();
+    const expiresAt = new Date(roomData.room.expires_at);
+    const diff = expiresAt.getTime() - now.getTime();
+
+    if (diff <= 0) return '期限切れ';
+
+    const minutes = Math.floor(diff / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${minutes}分${seconds}秒`;
+  };
 
   // 投票者の名前を取得
   const getVoterName = () => {
-    const currentParticipantId = participantId || restoreSession()?.participantId
-    if (!currentParticipantId || !roomData?.participants) return '不明'
-    const voter = roomData.participants.find(p => p.id === currentParticipantId)
-    return voter?.name || '不明'
-  }
+    const currentParticipantId =
+      participantId || restoreSession()?.participantId;
+    if (!currentParticipantId || !roomData?.participants) return '不明';
+    const voter = roomData.participants.find(
+      p => p.id === currentParticipantId
+    );
+    return voter?.name || '不明';
+  };
 
   useEffect(() => {
-    let finalParticipantId = participantId
-    
+    let finalParticipantId = participantId;
+
     // participantIdが指定されていない場合、セッションから復元を試行
     if (!participantId) {
-      const session = restoreSession()
+      const session = restoreSession();
       if (session) {
-        finalParticipantId = session.participantId
+        finalParticipantId = session.participantId;
         // URLを更新（セッションから復元した場合）
-        router.replace(`/rooms/${roomId}/vote?participantId=${session.participantId}`)
+        router.replace(
+          `/rooms/${roomId}/vote?participantId=${session.participantId}`
+        );
       } else {
-        setError('参加者IDが指定されていません。先にルームに参加してください。')
-        setIsLoading(false)
-        return
+        setError(
+          '参加者IDが指定されていません。先にルームに参加してください。'
+        );
+        setIsLoading(false);
+        return;
       }
     }
 
-    fetchRoomData()
-  }, [roomId, participantId, router])
+    fetchRoomData();
+  }, [roomId, participantId, router]);
 
   if (isLoading) {
     return (
-      <Box bg="gray.50" minH="100vh" display="flex" alignItems="center" justifyContent="center">
+      <Box
+        bg="gray.50"
+        minH="100vh"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Stack gap={4} textAlign="center">
           <Spinner size="xl" color="blue.500" />
           <Text>投票画面を読み込み中...</Text>
         </Stack>
       </Box>
-    )
+    );
   }
 
   if (error || !roomData) {
@@ -196,16 +215,26 @@ export default function VotePage() {
         <Container maxW="lg" py={20}>
           <Stack gap={8} textAlign="center">
             <Link href="/">
-              <Heading size="xl" color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+              <Heading
+                size="xl"
+                color="blue.500"
+                cursor="pointer"
+                _hover={{ textDecoration: 'underline' }}
+              >
                 VoTem
               </Heading>
             </Link>
-            
+
             <Box bg="white" p={8} borderRadius="lg" shadow="sm">
               <Stack gap={4}>
-                <Heading size="lg" color="red.500">エラーが発生しました</Heading>
+                <Heading size="lg" color="red.500">
+                  エラーが発生しました
+                </Heading>
                 <Text color="gray.600">{error}</Text>
-                <Button onClick={() => router.push(`/rooms/${roomId}`)} colorScheme="blue">
+                <Button
+                  onClick={() => router.push(`/rooms/${roomId}`)}
+                  colorScheme="blue"
+                >
                   ルームに戻る
                 </Button>
               </Stack>
@@ -213,7 +242,7 @@ export default function VotePage() {
           </Stack>
         </Container>
       </Box>
-    )
+    );
   }
 
   if (hasVoted) {
@@ -222,16 +251,24 @@ export default function VotePage() {
         <Container maxW="lg" py={20}>
           <Stack gap={8} textAlign="center">
             <Link href="/">
-              <Heading size="xl" color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+              <Heading
+                size="xl"
+                color="blue.500"
+                cursor="pointer"
+                _hover={{ textDecoration: 'underline' }}
+              >
                 VoTem
               </Heading>
             </Link>
-            
+
             <Box bg="white" p={8} borderRadius="lg" shadow="sm">
               <Stack gap={6}>
-                <Heading size="lg" color="green.500">投票完了！</Heading>
+                <Heading size="lg" color="green.500">
+                  投票完了！
+                </Heading>
                 <Text color="gray.600">
-                  投票が正常に完了しました。<br />
+                  投票が正常に完了しました。
+                  <br />
                   結果画面に自動で移動します...
                 </Text>
                 <Spinner color="green.500" />
@@ -240,7 +277,7 @@ export default function VotePage() {
           </Stack>
         </Container>
       </Box>
-    )
+    );
   }
 
   if (roomData.room.status === 'completed') {
@@ -249,18 +286,26 @@ export default function VotePage() {
         <Container maxW="lg" py={20}>
           <Stack gap={8} textAlign="center">
             <Link href="/">
-              <Heading size="xl" color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+              <Heading
+                size="xl"
+                color="blue.500"
+                cursor="pointer"
+                _hover={{ textDecoration: 'underline' }}
+              >
                 VoTem
               </Heading>
             </Link>
-            
+
             <Box bg="white" p={8} borderRadius="lg" shadow="sm">
               <Stack gap={4}>
-                <Heading size="lg" color="blue.500">投票終了</Heading>
-                <Text color="gray.600">
-                  この投票は既に終了しています。
-                </Text>
-                <Button onClick={() => router.push(`/rooms/${roomId}/results`)} colorScheme="blue">
+                <Heading size="lg" color="blue.500">
+                  投票終了
+                </Heading>
+                <Text color="gray.600">この投票は既に終了しています。</Text>
+                <Button
+                  onClick={() => router.push(`/rooms/${roomId}/results`)}
+                  colorScheme="blue"
+                >
                   結果を確認する
                 </Button>
               </Stack>
@@ -268,10 +313,10 @@ export default function VotePage() {
           </Stack>
         </Container>
       </Box>
-    )
+    );
   }
 
-  const timeRemaining = getTimeRemaining()
+  const timeRemaining = getTimeRemaining();
 
   return (
     <Box bg="gray.50" minH="100vh">
@@ -280,34 +325,58 @@ export default function VotePage() {
           {/* ヘッダー */}
           <Stack gap={4} textAlign="center">
             <Link href="/">
-              <Heading size="lg" color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+              <Heading
+                size="lg"
+                color="blue.500"
+                cursor="pointer"
+                _hover={{ textDecoration: 'underline' }}
+              >
                 VoTem
               </Heading>
             </Link>
-            
+
             <Heading size="xl">{roomData.room.title}</Heading>
-            
-            <Stack direction={{ base: 'column', md: 'row' }} gap={4} justify="center" align="center">
+
+            <Stack
+              direction={{ base: 'column', md: 'row' }}
+              gap={4}
+              justify="center"
+              align="center"
+            >
               <Badge colorScheme="yellow" p={2} borderRadius="md">
                 投票中
               </Badge>
-              
+
               {timeRemaining && (
-                <Text fontSize="sm" color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}>
+                <Text
+                  fontSize="sm"
+                  color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
+                >
                   残り時間: {timeRemaining}
                 </Text>
               )}
             </Stack>
-            
+
             <Text color="gray.600">
-              投票者: <Text as="span" fontWeight="bold" color="blue.600">{getVoterName()}</Text>
+              投票者:{' '}
+              <Text as="span" fontWeight="bold" color="blue.600">
+                {getVoterName()}
+              </Text>
             </Text>
           </Stack>
 
           {/* 投票説明 */}
-          <Box bg="blue.50" p={6} borderRadius="lg" borderLeft="4px solid" borderColor="blue.500">
+          <Box
+            bg="blue.50"
+            p={6}
+            borderRadius="lg"
+            borderLeft="4px solid"
+            borderColor="blue.500"
+          >
             <Stack gap={2}>
-              <Text fontWeight="bold" color="blue.700">投票方法</Text>
+              <Text fontWeight="bold" color="blue.700">
+                投票方法
+              </Text>
               <Text color="blue.600" fontSize="sm">
                 下の参加者の中から1人を選んで投票してください。自分自身に投票することも可能です。
               </Text>
@@ -316,16 +385,24 @@ export default function VotePage() {
 
           {/* 参加者選択 */}
           <Stack gap={6}>
-            <Heading size="md" textAlign="center">投票対象を選択してください</Heading>
-            
+            <Heading size="md" textAlign="center">
+              投票対象を選択してください
+            </Heading>
+
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-              {roomData.participants.map((participant) => (
+              {roomData.participants.map(participant => (
                 <Box
                   key={participant.id}
                   cursor="pointer"
                   onClick={() => setSelectedParticipant(participant.id)}
-                  bg={selectedParticipant === participant.id ? 'blue.50' : 'white'}
-                  borderColor={selectedParticipant === participant.id ? 'blue.300' : 'gray.200'}
+                  bg={
+                    selectedParticipant === participant.id ? 'blue.50' : 'white'
+                  }
+                  borderColor={
+                    selectedParticipant === participant.id
+                      ? 'blue.300'
+                      : 'gray.200'
+                  }
                   borderWidth="2px"
                   borderRadius="lg"
                   p={6}
@@ -341,13 +418,17 @@ export default function VotePage() {
                     <Text fontWeight="bold" fontSize="lg">
                       {participant.name}
                     </Text>
-                    
+
                     {participant.id === participantId && (
-                      <Badge colorScheme="green" size="sm">あなた</Badge>
+                      <Badge colorScheme="green" size="sm">
+                        あなた
+                      </Badge>
                     )}
-                    
+
                     {selectedParticipant === participant.id && (
-                      <Badge colorScheme="blue" size="sm">選択中</Badge>
+                      <Badge colorScheme="blue" size="sm">
+                        選択中
+                      </Badge>
                     )}
                   </Stack>
                 </Box>
@@ -376,8 +457,12 @@ export default function VotePage() {
             >
               この人に投票する
             </Button>
-            
-            <Stack direction={{ base: 'column', md: 'row' }} gap={4} textAlign="center">
+
+            <Stack
+              direction={{ base: 'column', md: 'row' }}
+              gap={4}
+              textAlign="center"
+            >
               <Button
                 variant="outline"
                 onClick={() => router.push(`/rooms/${roomId}`)}
@@ -385,7 +470,7 @@ export default function VotePage() {
               >
                 ルームに戻る
               </Button>
-              
+
               <Button
                 variant="ghost"
                 onClick={() => router.push(`/rooms/${roomId}/results`)}
@@ -398,5 +483,5 @@ export default function VotePage() {
         </Stack>
       </Container>
     </Box>
-  )
+  );
 }

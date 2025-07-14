@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Box,
@@ -8,33 +8,33 @@ import {
   Button,
   Container,
   Input,
-} from '@chakra-ui/react'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+} from '@chakra-ui/react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function CreateRoom() {
-  const [title, setTitle] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [title, setTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [createdRoom, setCreatedRoom] = useState<{
-    id: string
-    url: string
-    title: string
-  } | null>(null)
-  const [error, setError] = useState('')
+    id: string;
+    url: string;
+    title: string;
+  } | null>(null);
+  const [error, setError] = useState('');
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!title.trim()) {
-      setError('タイトルを入力してください')
-      return
+      setError('タイトルを入力してください');
+      return;
     }
 
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
 
     try {
       const response = await fetch('/api/rooms', {
@@ -43,47 +43,47 @@ export default function CreateRoom() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ title: title.trim() }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'ルームの作成に失敗しました')
+        throw new Error(data.error || 'ルームの作成に失敗しました');
       }
 
       setCreatedRoom({
         id: data.room.id,
         url: data.url,
-        title: data.room.title
-      })
+        title: data.room.title,
+      });
 
       // 成功メッセージは画面遷移で代替
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'ルームの作成に失敗しました'
-      setError(errorMessage)
+      const errorMessage =
+        error instanceof Error ? error.message : 'ルームの作成に失敗しました';
+      setError(errorMessage);
       // エラーはsetErrorで表示
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const copyToClipboard = async () => {
-    if (!createdRoom) return
-    
+    if (!createdRoom) return;
+
     try {
-      await navigator.clipboard.writeText(createdRoom.url)
-      alert('URLをクリップボードにコピーしました')
+      await navigator.clipboard.writeText(createdRoom.url);
+      alert('URLをクリップボードにコピーしました');
     } catch {
-      alert('コピーに失敗しました。URLを手動でコピーしてください')
+      alert('コピーに失敗しました。URLを手動でコピーしてください');
     }
-  }
+  };
 
   const goToRoom = () => {
     if (createdRoom) {
-      router.push(`/rooms/${createdRoom.id}`)
+      router.push(`/rooms/${createdRoom.id}`);
     }
-  }
+  };
 
   if (createdRoom) {
     return (
@@ -123,7 +123,11 @@ export default function CreateRoom() {
                     </Box>
                   </Stack>
 
-                  <Stack direction={{ base: 'column', md: 'row' }} gap={4} w="100%">
+                  <Stack
+                    direction={{ base: 'column', md: 'row' }}
+                    gap={4}
+                    w="100%"
+                  >
                     <Button
                       colorScheme="blue"
                       onClick={copyToClipboard}
@@ -131,17 +135,21 @@ export default function CreateRoom() {
                     >
                       URLをコピー
                     </Button>
-                    <Button
-                      colorScheme="green"
-                      onClick={goToRoom}
-                      flex="1"
-                    >
+                    <Button colorScheme="green" onClick={goToRoom} flex="1">
                       ルームに入る
                     </Button>
                   </Stack>
 
-                  <Box p={4} bg="blue.50" borderRadius="md" borderLeft="4px solid" borderColor="blue.500">
-                    <Text fontWeight="bold" color="blue.700" mb={2}>重要！</Text>
+                  <Box
+                    p={4}
+                    bg="blue.50"
+                    borderRadius="md"
+                    borderLeft="4px solid"
+                    borderColor="blue.500"
+                  >
+                    <Text fontWeight="bold" color="blue.700" mb={2}>
+                      重要！
+                    </Text>
                     <Text color="blue.600" fontSize="sm">
                       このルームは30分後に自動削除されます。時間内に投票を完了してください。
                     </Text>
@@ -152,8 +160,8 @@ export default function CreateRoom() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setCreatedRoom(null)
-                  setTitle('')
+                  setCreatedRoom(null);
+                  setTitle('');
                 }}
               >
                 新しいルームを作成
@@ -162,7 +170,7 @@ export default function CreateRoom() {
           </Container>
         </Box>
       </>
-    )
+    );
   }
 
   return (
@@ -172,7 +180,12 @@ export default function CreateRoom() {
           <Stack gap={8}>
             <Stack gap={4} textAlign="center">
               <Link href="/">
-                <Heading size="xl" color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+                <Heading
+                  size="xl"
+                  color="blue.500"
+                  cursor="pointer"
+                  _hover={{ textDecoration: 'underline' }}
+                >
                   VoTem
                 </Heading>
               </Link>
@@ -189,7 +202,7 @@ export default function CreateRoom() {
                     <Text fontWeight="medium">ルームタイトル</Text>
                     <Input
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={e => setTitle(e.target.value)}
                       placeholder="例: 今日の掃除当番を決めよう"
                       size="lg"
                       maxLength={100}
@@ -218,13 +231,18 @@ export default function CreateRoom() {
 
             <Stack gap={4} textAlign="center">
               <Text fontSize="sm" color="gray.500">
-                • 登録不要・無料で利用できます<br />
-                • ルームは30分後に自動削除されます<br />
-                • 最大50人まで参加可能です
+                • 登録不要・無料で利用できます
+                <br />
+                • ルームは30分後に自動削除されます
+                <br />• 最大50人まで参加可能です
               </Text>
-              
+
               <Link href="/">
-                <Text color="blue.500" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+                <Text
+                  color="blue.500"
+                  cursor="pointer"
+                  _hover={{ textDecoration: 'underline' }}
+                >
                   ← ホームに戻る
                 </Text>
               </Link>
@@ -233,5 +251,5 @@ export default function CreateRoom() {
         </Container>
       </Box>
     </>
-  )
+  );
 }

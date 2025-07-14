@@ -1,12 +1,12 @@
 /**
  * ルームリアルタイム更新API（Server-Sent Events）
  * GET /api/rooms/[id]/events
- * 
+ *
  * ルーム情報と参加者リストの変更をリアルタイムでクライアントに配信します。
  * 5秒間隔でデータを送信し、ルーム有効期限の監視も行います。
  * 接続エラー時はクライアント側でHTTPポーリングにフォールバックします。
  */
-import { query } from "@/lib/database";
+import { query } from '@/lib/database';
 
 export async function GET(
   request: Request,
@@ -16,11 +16,11 @@ export async function GET(
 
   // SSEレスポンスヘッダーを設定
   const headers = {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Cache-Control",
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control',
   };
 
   // ReadableStreamを作成
@@ -34,14 +34,14 @@ export async function GET(
         try {
           await sendRoomUpdate(controller, roomId);
         } catch (error) {
-          console.error("SSE送信エラー:", error);
+          console.error('SSE送信エラー:', error);
           clearInterval(interval);
           controller.close();
         }
       }, 5000);
 
       // 接続が閉じられた時のクリーンアップ
-      request.signal.addEventListener("abort", () => {
+      request.signal.addEventListener('abort', () => {
         clearInterval(interval);
         controller.close();
       });
@@ -58,7 +58,7 @@ async function sendRoomUpdate(
   try {
     // ルーム情報を取得
     const roomResult = await query(
-      "SELECT id, title, created_at, expires_at, status FROM rooms WHERE id = $1",
+      'SELECT id, title, created_at, expires_at, status FROM rooms WHERE id = $1',
       [roomId]
     );
 
@@ -66,7 +66,7 @@ async function sendRoomUpdate(
       // ルームが見つからない場合は終了イベントを送信
       controller.enqueue(
         `event: error\ndata: ${JSON.stringify({
-          error: "ルームが見つかりません",
+          error: 'ルームが見つかりません',
         })}\n\n`
       );
       return;
@@ -80,7 +80,7 @@ async function sendRoomUpdate(
     if (now > expiresAt) {
       controller.enqueue(
         `event: expired\ndata: ${JSON.stringify({
-          message: "ルームの有効期限が切れました",
+          message: 'ルームの有効期限が切れました',
         })}\n\n`
       );
       return;
@@ -88,7 +88,7 @@ async function sendRoomUpdate(
 
     // 参加者情報を取得
     const participantsResult = await query(
-      "SELECT id, name, joined_at FROM participants WHERE room_id = $1 ORDER BY joined_at ASC",
+      'SELECT id, name, joined_at FROM participants WHERE room_id = $1 ORDER BY joined_at ASC',
       [roomId]
     );
 
@@ -108,10 +108,10 @@ async function sendRoomUpdate(
 
     controller.enqueue(`event: room-update\ndata: ${JSON.stringify(data)}\n\n`);
   } catch (error) {
-    console.error("ルームデータ取得エラー:", error);
+    console.error('ルームデータ取得エラー:', error);
     controller.enqueue(
       `event: error\ndata: ${JSON.stringify({
-        error: "データの取得に失敗しました",
+        error: 'データの取得に失敗しました',
       })}\n\n`
     );
   }

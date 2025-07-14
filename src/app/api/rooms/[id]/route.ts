@@ -2,7 +2,7 @@
  * ルーム情報取得・削除API
  * GET /api/rooms/[id] - ルーム情報と参加者リストを取得
  * DELETE /api/rooms/[id] - ルームとその関連データを削除
- * 
+ *
  * ルームの有効期限チェックも実行します。
  */
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,10 +24,9 @@ export async function GET(
     }
 
     // ルーム情報取得
-    const roomResult = await query(
-      'SELECT * FROM rooms WHERE id = $1',
-      [roomId]
-    );
+    const roomResult = await query('SELECT * FROM rooms WHERE id = $1', [
+      roomId,
+    ]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json(
@@ -56,9 +55,8 @@ export async function GET(
 
     return NextResponse.json({
       room,
-      participants
+      participants,
     });
-
   } catch (error) {
     console.error('ルーム取得エラー:', error);
     return NextResponse.json(
@@ -83,10 +81,9 @@ export async function DELETE(
     }
 
     // ルーム存在チェック
-    const roomResult = await query(
-      'SELECT * FROM rooms WHERE id = $1',
-      [roomId]
-    );
+    const roomResult = await query('SELECT * FROM rooms WHERE id = $1', [
+      roomId,
+    ]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json(
@@ -100,9 +97,8 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'ルームが削除されました'
+      message: 'ルームが削除されました',
     });
-
   } catch (error) {
     console.error('ルーム削除エラー:', error);
     return NextResponse.json(

@@ -1,7 +1,7 @@
 /**
  * 投票実行API
  * POST /api/rooms/[id]/vote
- * 
+ *
  * 参加者が他の参加者（自分含む）に投票します。
  * 1人1票制限があり、重複投票は防止されます。
  * 初回投票時にルームステータスが'voting'に変更されます。
@@ -17,7 +17,7 @@ export async function POST(
   const roomId = params.id;
   let participantId: string | undefined;
   let selectedParticipantId: string | undefined;
-  
+
   try {
     const body = await request.json();
     participantId = body.participantId;
@@ -31,10 +31,9 @@ export async function POST(
     }
 
     // ルーム存在チェックと期限チェック
-    const roomResult = await query(
-      'SELECT * FROM rooms WHERE id = $1',
-      [roomId]
-    );
+    const roomResult = await query('SELECT * FROM rooms WHERE id = $1', [
+      roomId,
+    ]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json(
@@ -92,10 +91,7 @@ export async function POST(
     );
 
     if (existingVote.rows.length > 0) {
-      return NextResponse.json(
-        { error: '既に投票済みです' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: '既に投票済みです' }, { status: 409 });
     }
 
     // 投票を記録
@@ -110,22 +106,18 @@ export async function POST(
 
     // ルームステータスを投票中に更新（初回投票時）
     if (room.status === 'waiting') {
-      await query(
-        'UPDATE rooms SET status = $1 WHERE id = $2',
-        ['voting', roomId]
-      );
+      await query('UPDATE rooms SET status = $1 WHERE id = $2', [
+        'voting',
+        roomId,
+      ]);
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: '投票が完了しました'
+      message: '投票が完了しました',
     });
-
   } catch (error) {
     console.error('投票エラー:', error);
-    return NextResponse.json(
-      { error: '投票に失敗しました' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '投票に失敗しました' }, { status: 500 });
   }
 }

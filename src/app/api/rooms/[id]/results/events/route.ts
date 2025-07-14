@@ -1,12 +1,12 @@
 /**
  * 投票結果リアルタイム更新API（Server-Sent Events）
  * GET /api/rooms/[id]/results/events
- * 
+ *
  * 投票結果と投票状況の変更をリアルタイムでクライアントに配信します。
  * 得票数順での結果、投票進捗、勝者情報を5秒間隔で送信します。
  * 接続エラー時はクライアント側でHTTPポーリングにフォールバックします。
  */
-import { query } from "@/lib/database";
+import { query } from '@/lib/database';
 
 export async function GET(
   request: Request,
@@ -16,11 +16,11 @@ export async function GET(
 
   // SSEレスポンスヘッダーを設定
   const headers = {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Cache-Control",
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control',
   };
 
   // ReadableStreamを作成
@@ -34,14 +34,14 @@ export async function GET(
         try {
           await sendResultsUpdate(controller, roomId);
         } catch (error) {
-          console.error("SSE結果送信エラー:", error);
+          console.error('SSE結果送信エラー:', error);
           clearInterval(interval);
           controller.close();
         }
       }, 5000);
 
       // 接続が閉じられた時のクリーンアップ
-      request.signal.addEventListener("abort", () => {
+      request.signal.addEventListener('abort', () => {
         clearInterval(interval);
         controller.close();
       });
@@ -58,14 +58,14 @@ async function sendResultsUpdate(
   try {
     // ルーム情報を取得
     const roomResult = await query(
-      "SELECT id, title, created_at, expires_at, status FROM rooms WHERE id = $1",
+      'SELECT id, title, created_at, expires_at, status FROM rooms WHERE id = $1',
       [roomId]
     );
 
     if (roomResult.rows.length === 0) {
       controller.enqueue(
         `event: error\ndata: ${JSON.stringify({
-          error: "ルームが見つかりません",
+          error: 'ルームが見つかりません',
         })}\n\n`
       );
       return;
@@ -87,7 +87,7 @@ async function sendResultsUpdate(
     `;
 
     const resultsResult = await query(resultsQuery, [roomId]);
-    const results = resultsResult.rows.map((row) => ({
+    const results = resultsResult.rows.map(row => ({
       ...row,
       vote_count: parseInt(row.vote_count),
     }));
@@ -110,7 +110,7 @@ async function sendResultsUpdate(
     // 勝者を決定
     const maxVotes = results.length > 0 ? results[0].vote_count : 0;
     const winners = results.filter(
-      (result) => result.vote_count === maxVotes && maxVotes > 0
+      result => result.vote_count === maxVotes && maxVotes > 0
     );
 
     // データを送信
@@ -135,10 +135,10 @@ async function sendResultsUpdate(
       `event: results-update\ndata: ${JSON.stringify(data)}\n\n`
     );
   } catch (error) {
-    console.error("結果データ取得エラー:", error);
+    console.error('結果データ取得エラー:', error);
     controller.enqueue(
       `event: error\ndata: ${JSON.stringify({
-        error: "データの取得に失敗しました",
+        error: 'データの取得に失敗しました',
       })}\n\n`
     );
   }

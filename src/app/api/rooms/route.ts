@@ -1,7 +1,7 @@
 /**
  * ルーム作成API
  * POST /api/rooms
- * 
+ *
  * 新しい投票ルームを作成し、30分の有効期限を設定します。
  * 作成されたルームのIDとアクセス用URLを返します。
  */
@@ -36,9 +36,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       room,
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/rooms/${roomId}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/rooms/${roomId}`,
     });
-
   } catch (error) {
     console.error('ルーム作成エラー:', error);
     return NextResponse.json(

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Box, Stack, Heading, Text, Button, Container } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
+import { Box, Stack, Heading, Text, Button, Container } from '@chakra-ui/react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
 
   const handleCreateRoom = () => {
-    router.push("/create");
+    router.push('/create');
   };
 
   return (

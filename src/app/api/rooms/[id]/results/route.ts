@@ -1,7 +1,7 @@
 /**
  * 投票結果取得API
  * GET /api/rooms/[id]/results
- * 
+ *
  * 投票結果を得票数順で取得します。
  * 投票状況（何人中何人が投票済み）も含まれます。
  * 全員投票完了時にルームステータスが'completed'に変更されます。
@@ -24,10 +24,9 @@ export async function GET(
     }
 
     // ルーム存在チェックと期限チェック
-    const roomResult = await query(
-      'SELECT * FROM rooms WHERE id = $1',
-      [roomId]
-    );
+    const roomResult = await query('SELECT * FROM rooms WHERE id = $1', [
+      roomId,
+    ]);
 
     if (roomResult.rows.length === 0) {
       return NextResponse.json(
@@ -52,7 +51,6 @@ export async function GET(
       );
     }
 
-
     // 投票結果取得（得票数順）
     const resultsQuery = `
       SELECT 
@@ -69,7 +67,7 @@ export async function GET(
     const resultsResult = await query(resultsQuery, [roomId]);
     const results = resultsResult.rows.map(row => ({
       ...row,
-      vote_count: parseInt(row.vote_count)
+      vote_count: parseInt(row.vote_count),
     }));
 
     // 投票状況取得
@@ -88,12 +86,16 @@ export async function GET(
     // 全員投票完了の場合、ルームステータスを完了に更新
     const votedCount = parseInt(voteStatus.voted_count);
     const totalParticipants = parseInt(voteStatus.total_participants);
-    
-    if (votedCount === totalParticipants && totalParticipants > 0 && room.status === 'voting') {
-      await query(
-        'UPDATE rooms SET status = $1 WHERE id = $2',
-        ['completed', roomId]
-      );
+
+    if (
+      votedCount === totalParticipants &&
+      totalParticipants > 0 &&
+      room.status === 'voting'
+    ) {
+      await query('UPDATE rooms SET status = $1 WHERE id = $2', [
+        'completed',
+        roomId,
+      ]);
     }
 
     // 最高得票者（複数の場合あり）
@@ -103,17 +105,19 @@ export async function GET(
     return NextResponse.json({
       room: {
         ...room,
-        status: votedCount === totalParticipants && totalParticipants > 0 ? 'completed' : room.status
+        status:
+          votedCount === totalParticipants && totalParticipants > 0
+            ? 'completed'
+            : room.status,
       },
       results,
       voteStatus: {
         votedCount,
         totalParticipants,
-        isComplete: votedCount === totalParticipants && totalParticipants > 0
+        isComplete: votedCount === totalParticipants && totalParticipants > 0,
       },
-      winners
+      winners,
     });
-
   } catch (error) {
     console.error('結果取得エラー:', error);
     return NextResponse.json(

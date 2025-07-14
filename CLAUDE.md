@@ -19,6 +19,7 @@ VoTemは匿名投票・ランダム選択システムです。投票主催者が
 ### データ構造
 
 #### Room
+
 ```typescript
 {
   id: string (UUID)
@@ -30,23 +31,25 @@ VoTemは匿名投票・ランダム選択システムです。投票主催者が
 ```
 
 #### Participant
+
 ```typescript
 {
-  id: string
-  roomId: string
-  name: string
-  joinedAt: timestamp
+  id: string;
+  roomId: string;
+  name: string;
+  joinedAt: timestamp;
 }
 ```
 
 #### Vote
+
 ```typescript
 {
-  id: string
-  roomId: string
-  participantId: string
-  selectedParticipantId: string
-  createdAt: timestamp
+  id: string;
+  roomId: string;
+  participantId: string;
+  selectedParticipantId: string;
+  createdAt: timestamp;
 }
 ```
 

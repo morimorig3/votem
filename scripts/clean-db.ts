@@ -18,7 +18,11 @@ async function query(text: string, params?: unknown[]) {
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    console.log('Executed query', { text: text.substring(0, 50) + '...', duration, rows: res.rowCount });
+    console.log('Executed query', {
+      text: text.substring(0, 50) + '...',
+      duration,
+      rows: res.rowCount,
+    });
     return res;
   } catch (error) {
     console.error('Database query error:', error);
@@ -29,7 +33,7 @@ async function query(text: string, params?: unknown[]) {
 async function cleanDatabase(): Promise<void> {
   try {
     console.log('🧹 データベースのクリーンアップを開始...');
-    
+
     // 期限切れルームの削除
     const expiredResult = await query(
       'DELETE FROM rooms WHERE expires_at < CURRENT_TIMESTAMP'
@@ -44,18 +48,19 @@ async function cleanDatabase(): Promise<void> {
 
     // データベース統計表示
     console.log('\n📊 現在のデータベース状況:');
-    
+
     const roomsCount = await query('SELECT COUNT(*) as count FROM rooms');
     console.log(`   ルーム数: ${roomsCount.rows[0].count}`);
-    
-    const participantsCount = await query('SELECT COUNT(*) as count FROM participants');
+
+    const participantsCount = await query(
+      'SELECT COUNT(*) as count FROM participants'
+    );
     console.log(`   参加者数: ${participantsCount.rows[0].count}`);
-    
+
     const votesCount = await query('SELECT COUNT(*) as count FROM votes');
     console.log(`   投票数: ${votesCount.rows[0].count}`);
 
     console.log('\n🎉 データベースクリーンアップが完了しました！');
-
   } catch (error) {
     console.error('❌ クリーンアップ中にエラーが発生しました:', error);
     process.exit(1);

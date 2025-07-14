@@ -41,7 +41,7 @@ export async function initializeDatabase() {
   try {
     const sqlPath = path.join(process.cwd(), 'scripts', 'init-db.sql');
     const sql = fs.readFileSync(sqlPath, 'utf8');
-    
+
     await query(sql);
     console.log('Database initialized successfully');
     return true;
