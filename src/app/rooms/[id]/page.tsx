@@ -12,7 +12,7 @@ import {
   Spinner,
   SimpleGrid,
 } from '@chakra-ui/react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -42,6 +42,7 @@ export default function RoomPage() {
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState('')
   const [currentParticipant, setCurrentParticipant] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   const router = useRouter()
   const params = useParams()
@@ -181,21 +182,6 @@ export default function RoomPage() {
     router.push(`/rooms/${roomId}/results`)
   }
 
-  // 有効期限チェック
-  const getTimeRemaining = () => {
-    if (!roomData?.room.expires_at) return null
-    
-    const now = new Date()
-    const expiresAt = new Date(roomData.room.expires_at)
-    const diff = expiresAt.getTime() - now.getTime()
-    
-    if (diff <= 0) return '期限切れ'
-    
-    const minutes = Math.floor(diff / (1000 * 60))
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    
-    return `${minutes}分${seconds}秒`
-  }
 
   useEffect(() => {
     // セッション復元を試行
@@ -256,6 +242,32 @@ export default function RoomPage() {
     }
   }, [roomId, fetchRoomData, restoreSession, currentParticipant, clearSession])
 
+  // 1秒ごとに現在時刻を更新（残り時間表示のため）
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timeInterval)
+  }, [])
+
+  // 残り時間を計算（1秒ごとに更新）
+  const timeRemaining = useMemo(() => {
+    if (!roomData?.room.expires_at) return null
+    
+    const expiresAt = new Date(roomData.room.expires_at)
+    const diff = expiresAt.getTime() - currentTime.getTime()
+    
+    if (diff <= 0) return '期限切れ'
+    
+    const minutes = Math.floor(diff / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+    
+    console.log(`${minutes}分${seconds}秒`);
+    
+    return `${minutes}分${seconds}秒`
+  }, [roomData?.room.expires_at, currentTime])
+
   if (isLoading) {
     return (
       <Box bg="gray.50" minH="100vh" display="flex" alignItems="center" justifyContent="center">
@@ -293,7 +305,6 @@ export default function RoomPage() {
     )
   }
 
-  const timeRemaining = getTimeRemaining()
 
   return (
     <Box bg="gray.50" minH="100vh">
