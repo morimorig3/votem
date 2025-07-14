@@ -9,12 +9,12 @@ import {
   Container,
   Input,
   Badge,
-  Spinner,
   SimpleGrid,
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import LoadingScreen from '@/components/LoadingScreen';
 
 interface Participant {
   id: string;
@@ -280,20 +280,7 @@ export default function RoomPage() {
   }, [roomData?.room.expires_at, currentTime]);
 
   if (isLoading) {
-    return (
-      <Box
-        bg="gray.50"
-        minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Stack gap={4} textAlign="center">
-          <Spinner size="xl" color="blue.500" />
-          <Text>ルーム情報を読み込み中...</Text>
-        </Stack>
-      </Box>
-    );
+    return <LoadingScreen message="ルーム情報を読み込み中..." />;
   }
 
   if (error || !roomData) {

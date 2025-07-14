@@ -8,12 +8,12 @@ import {
   Button,
   Container,
   SimpleGrid,
-  Spinner,
   Badge,
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import LoadingScreen from '@/components/LoadingScreen';
 
 interface VoteResult {
   id: string;
@@ -159,20 +159,7 @@ export default function ResultsPage() {
   }, [roomId, fetchResults]);
 
   if (isLoading) {
-    return (
-      <Box
-        bg="gray.50"
-        minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Stack gap={4} textAlign="center">
-          <Spinner size="xl" color="blue.500" />
-          <Text>結果を読み込み中...</Text>
-        </Stack>
-      </Box>
-    );
+    return <LoadingScreen message="結果を読み込み中..." />;
   }
 
   if (error || !resultsData) {

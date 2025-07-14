@@ -14,6 +14,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import LoadingScreen from '@/components/LoadingScreen';
 
 interface Participant {
   id: string;
@@ -193,20 +194,7 @@ export default function VotePage() {
   }, [roomId, participantId, router]);
 
   if (isLoading) {
-    return (
-      <Box
-        bg="gray.50"
-        minH="100vh"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Stack gap={4} textAlign="center">
-          <Spinner size="xl" color="blue.500" />
-          <Text>投票画面を読み込み中...</Text>
-        </Stack>
-      </Box>
-    );
+    return <LoadingScreen message="投票画面を読み込み中..." />;
   }
 
   if (error || !roomData) {
@@ -271,7 +259,7 @@ export default function VotePage() {
                   <br />
                   結果画面に自動で移動します...
                 </Text>
-                <Spinner color="green.500" />
+                <Spinner color="green.500" size="lg" />
               </Stack>
             </Box>
           </Stack>
