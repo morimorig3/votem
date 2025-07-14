@@ -114,19 +114,44 @@ export default function ResultsPage() {
   }
 
   useEffect(() => {
+    // 初回データ取得
     fetchResults()
     
-    // 投票中の場合は30秒ごとに更新
-    let interval: NodeJS.Timeout | null = null
+    // Server-Sent Events接続を開始
+    const eventSource = new EventSource(`/api/rooms/${roomId}/results/events`)
     
-    if (resultsData?.room.status === 'voting') {
-      interval = setInterval(fetchResults, 30000)
+    eventSource.addEventListener('results-update', (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        setResultsData(data)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('SSE結果データパースエラー:', error)
+      }
+    })
+    
+    eventSource.addEventListener('error', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data)
+        setError(data.error)
+      } catch {
+        console.error('SSE結果接続エラー')
+        setError('リアルタイム更新の接続に失敗しました')
+      }
+    })
+    
+    eventSource.onerror = () => {
+      console.error('SSE結果接続が切断されました')
+      // フォールバック：通常のHTTPリクエストに切り替え
+      eventSource.close()
+      const fallbackInterval = setInterval(fetchResults, 10000)
+      return () => clearInterval(fallbackInterval)
     }
     
     return () => {
-      if (interval) clearInterval(interval)
+      eventSource.close()
     }
-  }, [fetchResults, resultsData?.room.status])
+  }, [roomId, fetchResults])
 
   if (isLoading) {
     return (
@@ -368,7 +393,7 @@ export default function ResultsPage() {
             
             {!resultsData.voteStatus.isComplete && resultsData.room.status === 'voting' && (
               <Text fontSize="sm" color="gray.600" textAlign="center">
-                結果は30秒ごとに自動更新されます
+                結果はリアルタイムで自動更新されます
               </Text>
             )}
           </Stack>

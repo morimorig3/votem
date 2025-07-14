@@ -47,6 +47,44 @@ export default function RoomPage() {
   const params = useParams()
   const roomId = params.id as string
 
+  // LocalStorageのキー
+  const getStorageKey = useCallback(() => `votem_participant_${roomId}`, [roomId])
+
+  // セッション情報を保存
+  const saveSession = (participantId: string, participantName: string) => {
+    const sessionData = {
+      participantId,
+      participantName,
+      timestamp: Date.now()
+    }
+    localStorage.setItem(getStorageKey(), JSON.stringify(sessionData))
+  }
+
+  // セッション情報を復元
+  const restoreSession = useCallback(() => {
+    try {
+      const stored = localStorage.getItem(getStorageKey())
+      if (stored) {
+        const sessionData = JSON.parse(stored)
+        // 24時間以内のセッションのみ有効
+        if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
+          return sessionData
+        } else {
+          localStorage.removeItem(getStorageKey())
+        }
+      }
+    } catch (error) {
+      console.error('セッション復元エラー:', error)
+      localStorage.removeItem(getStorageKey())
+    }
+    return null
+  }, [getStorageKey])
+
+  // セッション情報をクリア
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(getStorageKey())
+  }, [getStorageKey])
+
   // ルーム情報を取得
   const fetchRoomData = useCallback(async () => {
     try {
@@ -58,13 +96,23 @@ export default function RoomPage() {
       }
 
       setRoomData(data)
+      
+      // セッションで復元した参加者が実際にルームに存在するかチェック
+      if (currentParticipant && data.participants) {
+        const participantExists = data.participants.some((p: Participant) => p.id === currentParticipant)
+        if (!participantExists) {
+          // 参加者が存在しない場合はセッションをクリア
+          clearSession()
+          setCurrentParticipant(null)
+        }
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'ルーム情報の取得に失敗しました'
       setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
-  }, [roomId])
+  }, [roomId, currentParticipant, clearSession])
 
   // 参加者追加
   const handleJoinRoom = async (e: React.FormEvent) => {
@@ -96,6 +144,9 @@ export default function RoomPage() {
       // 参加成功
       setCurrentParticipant(data.participant.id)
       setNewParticipantName('')
+      
+      // セッション情報を保存
+      saveSession(data.participant.id, data.participant.name)
       
       // ルーム情報を再取得
       await fetchRoomData()
@@ -147,13 +198,63 @@ export default function RoomPage() {
   }
 
   useEffect(() => {
+    // セッション復元を試行
+    const session = restoreSession()
+    if (session) {
+      setCurrentParticipant(session.participantId)
+    }
+    
+    // 初回データ取得
     fetchRoomData()
     
-    // 30秒ごとにデータを更新
-    const interval = setInterval(fetchRoomData, 30000)
+    // Server-Sent Events接続を開始
+    const eventSource = new EventSource(`/api/rooms/${roomId}/events`)
     
-    return () => clearInterval(interval)
-  }, [roomId, fetchRoomData])
+    eventSource.addEventListener('room-update', (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        setRoomData(data)
+        setIsLoading(false)
+        
+        // セッションで復元した参加者が実際にルームに存在するかチェック
+        if (currentParticipant && data.participants) {
+          const participantExists = data.participants.some((p: Participant) => p.id === currentParticipant)
+          if (!participantExists) {
+            clearSession()
+            setCurrentParticipant(null)
+          }
+        }
+      } catch (error) {
+        console.error('SSEデータパースエラー:', error)
+      }
+    })
+    
+    eventSource.addEventListener('error', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data)
+        setError(data.error)
+      } catch {
+        console.error('SSE接続エラー')
+        setError('リアルタイム更新の接続に失敗しました')
+      }
+    })
+    
+    eventSource.addEventListener('expired', () => {
+      setError('ルームの有効期限が切れました')
+    })
+    
+    eventSource.onerror = () => {
+      console.error('SSE接続が切断されました')
+      // フォールバック：通常のHTTPリクエストに切り替え
+      eventSource.close()
+      const fallbackInterval = setInterval(fetchRoomData, 10000)
+      return () => clearInterval(fallbackInterval)
+    }
+    
+    return () => {
+      eventSource.close()
+    }
+  }, [roomId, fetchRoomData, restoreSession, currentParticipant, clearSession])
 
   if (isLoading) {
     return (

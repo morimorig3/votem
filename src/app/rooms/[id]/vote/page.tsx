@@ -48,6 +48,28 @@ export default function VotePage() {
   
   const roomId = params.id as string
   const participantId = searchParams.get('participantId')
+  
+  // LocalStorageのキー
+  const getStorageKey = () => `votem_participant_${roomId}`
+  
+  // セッション情報を復元
+  const restoreSession = () => {
+    try {
+      const stored = localStorage.getItem(getStorageKey())
+      if (stored) {
+        const sessionData = JSON.parse(stored)
+        if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
+          return sessionData
+        } else {
+          localStorage.removeItem(getStorageKey())
+        }
+      }
+    } catch (error) {
+      console.error('セッション復元エラー:', error)
+      localStorage.removeItem(getStorageKey())
+    }
+    return null
+  }
 
   // ルーム情報を取得
   const fetchRoomData = async () => {
@@ -70,7 +92,8 @@ export default function VotePage() {
 
   // 投票実行
   const handleVote = async () => {
-    if (!selectedParticipant || !participantId) {
+    const currentParticipantId = participantId || restoreSession()?.participantId
+    if (!selectedParticipant || !currentParticipantId) {
       setError('投票対象を選択してください')
       return
     }
@@ -85,7 +108,7 @@ export default function VotePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          participantId,
+          participantId: currentParticipantId,
           selectedParticipantId: selectedParticipant,
         }),
       })
@@ -130,20 +153,31 @@ export default function VotePage() {
 
   // 投票者の名前を取得
   const getVoterName = () => {
-    if (!participantId || !roomData?.participants) return '不明'
-    const voter = roomData.participants.find(p => p.id === participantId)
+    const currentParticipantId = participantId || restoreSession()?.participantId
+    if (!currentParticipantId || !roomData?.participants) return '不明'
+    const voter = roomData.participants.find(p => p.id === currentParticipantId)
     return voter?.name || '不明'
   }
 
   useEffect(() => {
+    let finalParticipantId = participantId
+    
+    // participantIdが指定されていない場合、セッションから復元を試行
     if (!participantId) {
-      setError('参加者IDが指定されていません')
-      setIsLoading(false)
-      return
+      const session = restoreSession()
+      if (session) {
+        finalParticipantId = session.participantId
+        // URLを更新（セッションから復元した場合）
+        router.replace(`/rooms/${roomId}/vote?participantId=${session.participantId}`)
+      } else {
+        setError('参加者IDが指定されていません。先にルームに参加してください。')
+        setIsLoading(false)
+        return
+      }
     }
 
     fetchRoomData()
-  }, [roomId, participantId])
+  }, [roomId, participantId, router])
 
   if (isLoading) {
     return (
