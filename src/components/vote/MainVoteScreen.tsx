@@ -11,7 +11,6 @@ interface MainVoteScreenProps {
   roomId: string;
   roomData: RoomData;
   selectedParticipant: string | null;
-  currentParticipantId: string | null;
   voterName: string;
   timeRemaining: string | null;
   isVoting: boolean;
@@ -25,7 +24,6 @@ export default function MainVoteScreen({
   roomId,
   roomData,
   selectedParticipant,
-  currentParticipantId,
   voterName,
   timeRemaining,
   isVoting,
@@ -38,10 +36,6 @@ export default function MainVoteScreen({
 
   const handleBackToRoom = () => {
     router.push(`/rooms/${roomId}`);
-  };
-
-  const handleViewResults = () => {
-    router.push(`/rooms/${roomId}/results`);
   };
 
   return (
@@ -58,7 +52,6 @@ export default function MainVoteScreen({
         <ParticipantSelector
           participants={roomData.participants}
           selectedParticipantId={selectedParticipant}
-          currentParticipantId={currentParticipantId}
           onSelectParticipant={onSelectParticipant}
           error={error}
         />
@@ -70,7 +63,6 @@ export default function MainVoteScreen({
           onVote={onVote}
           onRandomSelection={onRandomSelection}
           onBackToRoom={handleBackToRoom}
-          onViewResults={handleViewResults}
         />
       </Stack>
     </PageLayout>

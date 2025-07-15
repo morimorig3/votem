@@ -137,7 +137,6 @@ export default function VotePage() {
       roomId={roomId}
       roomData={roomData}
       selectedParticipant={selectedParticipant}
-      currentParticipantId={restoreSession(roomId)?.participantId || null}
       voterName={getVoterName()}
       timeRemaining={timeRemaining}
       isVoting={isVoting}

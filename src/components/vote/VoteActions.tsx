@@ -10,7 +10,6 @@ interface VoteActionsProps {
   onVote: () => void;
   onRandomSelection: () => void;
   onBackToRoom: () => void;
-  onViewResults: () => void;
 }
 
 export default function VoteActions({
@@ -20,7 +19,6 @@ export default function VoteActions({
   onVote,
   onRandomSelection,
   onBackToRoom,
-  onViewResults,
 }: VoteActionsProps) {
   return (
     <Stack gap={6} align="center">
@@ -52,27 +50,13 @@ export default function VoteActions({
         </Button>
       </Stack>
 
-      <Stack
-        direction={{ base: 'column', md: 'row' }}
-        gap={4}
-        textAlign="center"
+      <Button
+        variant="outline"
+        onClick={onBackToRoom}
+        size="sm"
       >
-        <Button
-          variant="outline"
-          onClick={onBackToRoom}
-          size="sm"
-        >
-          ルームに戻る
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={onViewResults}
-          size="sm"
-        >
-          途中結果を確認
-        </Button>
-      </Stack>
+        ルームに戻る
+      </Button>
     </Stack>
   );
 }

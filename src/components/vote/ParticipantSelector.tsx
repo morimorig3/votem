@@ -4,14 +4,12 @@ import {
   Heading,
   Text,
   SimpleGrid,
-  Badge,
 } from '@chakra-ui/react';
 import { Participant } from '@/types/database';
 
 interface ParticipantSelectorProps {
   participants: Participant[];
   selectedParticipantId: string | null;
-  currentParticipantId: string | null;
   onSelectParticipant: (participantId: string) => void;
   error?: string;
 }
@@ -19,7 +17,6 @@ interface ParticipantSelectorProps {
 export default function ParticipantSelector({
   participants,
   selectedParticipantId,
-  currentParticipantId,
   onSelectParticipant,
   error,
 }: ParticipantSelectorProps) {
@@ -54,23 +51,9 @@ export default function ParticipantSelector({
             }}
             transition="all 0.2s"
           >
-            <Stack gap={3} textAlign="center">
-              <Text fontWeight="bold" fontSize="lg">
-                {participant.name}
-              </Text>
-
-              {participant.id === currentParticipantId && (
-                <Badge colorScheme="green" size="sm">
-                  あなた
-                </Badge>
-              )}
-
-              {selectedParticipantId === participant.id && (
-                <Badge colorScheme="blue" size="sm">
-                  選択中
-                </Badge>
-              )}
-            </Stack>
+            <Text fontWeight="bold" fontSize="lg" textAlign="center">
+              {participant.name}
+            </Text>
           </Box>
         ))}
       </SimpleGrid>
