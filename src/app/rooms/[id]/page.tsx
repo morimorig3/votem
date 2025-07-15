@@ -16,25 +16,9 @@ import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
-
-interface Participant {
-  id: string;
-  name: string;
-  joined_at: string;
-}
-
-interface Room {
-  id: string;
-  title: string;
-  created_at: string;
-  expires_at: string;
-  status: 'waiting' | 'voting' | 'completed';
-}
-
-interface RoomData {
-  room: Room;
-  participants: Participant[];
-}
+import { getRoomData } from '@/service/roomService';
+import { joinRoom } from '@/service/participantService';
+import { RoomData, Participant } from '@/types/database';
 
 export default function RoomPage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -95,13 +79,7 @@ export default function RoomPage() {
   // ルーム情報を取得
   const fetchRoomData = useCallback(async () => {
     try {
-      const response = await fetch(`/api/rooms/${roomId}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'ルーム情報の取得に失敗しました');
-      }
-
+      const data = await getRoomData(roomId);
       setRoomData(data);
 
       // セッションで復元した参加者が実際にルームに存在するかチェック
@@ -139,19 +117,7 @@ export default function RoomPage() {
     setError('');
 
     try {
-      const response = await fetch(`/api/rooms/${roomId}/participants`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newParticipantName.trim() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || '参加に失敗しました');
-      }
+      const data = await joinRoom(roomId, newParticipantName.trim());
 
       // 参加成功
       setCurrentParticipant(data.participant.id);

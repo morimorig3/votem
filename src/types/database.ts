@@ -24,14 +24,32 @@ export interface Vote {
 }
 
 // API レスポンス型
-export interface RoomWithParticipants extends Room {
+export interface RoomData {
+  room: Room;
   participants: Participant[];
 }
 
 export interface VoteResult {
-  candidate_id: string;
-  candidate_name: string;
+  id: string;
+  name: string;
   vote_count: number;
+}
+
+export interface VoteStatus {
+  votedCount: number;
+  totalParticipants: number;
+  isComplete: boolean;
+}
+
+export interface ResultsData {
+  room: Room;
+  results: VoteResult[];
+  voteStatus: VoteStatus;
+  winners: VoteResult[];
+}
+
+export interface RoomWithParticipants extends Room {
+  participants: Participant[];
 }
 
 export interface RoomResults {

@@ -16,25 +16,9 @@ import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
-
-interface Participant {
-  id: string;
-  name: string;
-  joined_at: string;
-}
-
-interface Room {
-  id: string;
-  title: string;
-  created_at: string;
-  expires_at: string;
-  status: 'waiting' | 'voting' | 'completed';
-}
-
-interface RoomData {
-  room: Room;
-  participants: Participant[];
-}
+import { getRoomData } from '@/service/roomService';
+import { submitVote } from '@/service/voteService';
+import { RoomData } from '@/types/database';
 
 export default function VotePage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -78,13 +62,7 @@ export default function VotePage() {
   // ルーム情報を取得
   const fetchRoomData = async () => {
     try {
-      const response = await fetch(`/api/rooms/${roomId}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'ルーム情報の取得に失敗しました');
-      }
-
+      const data = await getRoomData(roomId);
       setRoomData(data);
     } catch (error) {
       const errorMessage =
@@ -110,22 +88,7 @@ export default function VotePage() {
     setError('');
 
     try {
-      const response = await fetch(`/api/rooms/${roomId}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          participantId: currentParticipantId,
-          selectedParticipantId: selectedParticipant,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || '投票に失敗しました');
-      }
+      await submitVote(roomId, currentParticipantId, selectedParticipant);
 
       setHasVoted(true);
       alert('投票が完了しました！');
@@ -259,155 +222,155 @@ export default function VotePage() {
   return (
     <PageLayout maxWidth="4xl" padding={8}>
       <Stack gap={8}>
-          {/* ヘッダー */}
-          <Stack gap={4} textAlign="center">
-            <AppHeader size="lg" />
+        {/* ヘッダー */}
+        <Stack gap={4} textAlign="center">
+          <AppHeader size="lg" />
 
-            <Heading size="xl">{roomData.room.title}</Heading>
+          <Heading size="xl">{roomData.room.title}</Heading>
 
-            <Stack
-              direction={{ base: 'column', md: 'row' }}
-              gap={4}
-              justify="center"
-              align="center"
-            >
-              <Badge colorScheme="yellow" p={2} borderRadius="md">
-                投票中
-              </Badge>
-
-              {timeRemaining && (
-                <Text
-                  fontSize="sm"
-                  color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
-                >
-                  残り時間: {timeRemaining}
-                </Text>
-              )}
-            </Stack>
-
-            <Text color="gray.600">
-              投票者:{' '}
-              <Text as="span" fontWeight="bold" color="blue.600">
-                {getVoterName()}
-              </Text>
-            </Text>
-          </Stack>
-
-          {/* 投票説明 */}
-          <Box
-            bg="blue.50"
-            p={6}
-            borderRadius="lg"
-            borderLeft="4px solid"
-            borderColor="blue.500"
+          <Stack
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            justify="center"
+            align="center"
           >
-            <Stack gap={2}>
-              <Text fontWeight="bold" color="blue.700">
-                投票方法
-              </Text>
-              <Text color="blue.600" fontSize="sm">
-                下の参加者の中から1人を選んで投票してください。自分自身に投票することも可能です。
-              </Text>
-            </Stack>
-          </Box>
+            <Badge colorScheme="yellow" p={2} borderRadius="md">
+              投票中
+            </Badge>
 
-          {/* 参加者選択 */}
-          <Stack gap={6}>
-            <Heading size="md" textAlign="center">
-              投票対象を選択してください
-            </Heading>
-
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-              {roomData.participants.map(participant => (
-                <Box
-                  key={participant.id}
-                  cursor="pointer"
-                  onClick={() => setSelectedParticipant(participant.id)}
-                  bg={
-                    selectedParticipant === participant.id ? 'blue.50' : 'white'
-                  }
-                  borderColor={
-                    selectedParticipant === participant.id
-                      ? 'blue.300'
-                      : 'gray.200'
-                  }
-                  borderWidth="2px"
-                  borderRadius="lg"
-                  p={6}
-                  shadow="sm"
-                  _hover={{
-                    borderColor: 'blue.300',
-                    transform: 'translateY(-2px)',
-                    shadow: 'md',
-                  }}
-                  transition="all 0.2s"
-                >
-                  <Stack gap={3} textAlign="center">
-                    <Text fontWeight="bold" fontSize="lg">
-                      {participant.name}
-                    </Text>
-
-                    {participant.id === participantId && (
-                      <Badge colorScheme="green" size="sm">
-                        あなた
-                      </Badge>
-                    )}
-
-                    {selectedParticipant === participant.id && (
-                      <Badge colorScheme="blue" size="sm">
-                        選択中
-                      </Badge>
-                    )}
-                  </Stack>
-                </Box>
-              ))}
-            </SimpleGrid>
-
-            {error && (
-              <Text color="red.500" textAlign="center" fontWeight="medium">
-                {error}
+            {timeRemaining && (
+              <Text
+                fontSize="sm"
+                color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
+              >
+                残り時間: {timeRemaining}
               </Text>
             )}
           </Stack>
 
-          {/* 投票ボタン */}
-          <Stack gap={4} align="center">
+          <Text color="gray.600">
+            投票者:{' '}
+            <Text as="span" fontWeight="bold" color="blue.600">
+              {getVoterName()}
+            </Text>
+          </Text>
+        </Stack>
+
+        {/* 投票説明 */}
+        <Box
+          bg="blue.50"
+          p={6}
+          borderRadius="lg"
+          borderLeft="4px solid"
+          borderColor="blue.500"
+        >
+          <Stack gap={2}>
+            <Text fontWeight="bold" color="blue.700">
+              投票方法
+            </Text>
+            <Text color="blue.600" fontSize="sm">
+              下の参加者の中から1人を選んで投票してください。自分自身に投票することも可能です。
+            </Text>
+          </Stack>
+        </Box>
+
+        {/* 参加者選択 */}
+        <Stack gap={6}>
+          <Heading size="md" textAlign="center">
+            投票対象を選択してください
+          </Heading>
+
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+            {roomData.participants.map(participant => (
+              <Box
+                key={participant.id}
+                cursor="pointer"
+                onClick={() => setSelectedParticipant(participant.id)}
+                bg={
+                  selectedParticipant === participant.id ? 'blue.50' : 'white'
+                }
+                borderColor={
+                  selectedParticipant === participant.id
+                    ? 'blue.300'
+                    : 'gray.200'
+                }
+                borderWidth="2px"
+                borderRadius="lg"
+                p={6}
+                shadow="sm"
+                _hover={{
+                  borderColor: 'blue.300',
+                  transform: 'translateY(-2px)',
+                  shadow: 'md',
+                }}
+                transition="all 0.2s"
+              >
+                <Stack gap={3} textAlign="center">
+                  <Text fontWeight="bold" fontSize="lg">
+                    {participant.name}
+                  </Text>
+
+                  {participant.id === participantId && (
+                    <Badge colorScheme="green" size="sm">
+                      あなた
+                    </Badge>
+                  )}
+
+                  {selectedParticipant === participant.id && (
+                    <Badge colorScheme="blue" size="sm">
+                      選択中
+                    </Badge>
+                  )}
+                </Stack>
+              </Box>
+            ))}
+          </SimpleGrid>
+
+          {error && (
+            <Text color="red.500" textAlign="center" fontWeight="medium">
+              {error}
+            </Text>
+          )}
+        </Stack>
+
+        {/* 投票ボタン */}
+        <Stack gap={4} align="center">
+          <Button
+            colorScheme="blue"
+            size="lg"
+            px={12}
+            py={6}
+            fontSize="lg"
+            onClick={handleVote}
+            loading={isVoting}
+            loadingText="投票中..."
+            disabled={!selectedParticipant || timeRemaining === '期限切れ'}
+          >
+            この人に投票する
+          </Button>
+
+          <Stack
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            textAlign="center"
+          >
             <Button
-              colorScheme="blue"
-              size="lg"
-              px={12}
-              py={6}
-              fontSize="lg"
-              onClick={handleVote}
-              loading={isVoting}
-              loadingText="投票中..."
-              disabled={!selectedParticipant || timeRemaining === '期限切れ'}
+              variant="outline"
+              onClick={() => router.push(`/rooms/${roomId}`)}
+              size="sm"
             >
-              この人に投票する
+              ルームに戻る
             </Button>
 
-            <Stack
-              direction={{ base: 'column', md: 'row' }}
-              gap={4}
-              textAlign="center"
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/rooms/${roomId}/results`)}
+              size="sm"
             >
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/rooms/${roomId}`)}
-                size="sm"
-              >
-                ルームに戻る
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => router.push(`/rooms/${roomId}/results`)}
-                size="sm"
-              >
-                途中結果を確認
-              </Button>
-            </Stack>
+              途中結果を確認
+            </Button>
           </Stack>
+        </Stack>
       </Stack>
     </PageLayout>
   );

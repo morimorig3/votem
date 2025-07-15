@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageLayout from '@/components/PageLayout';
 import AppHeader from '@/components/AppHeader';
+import { createRoom } from '@/service/roomService';
 
 export default function CreateRoom() {
   const [title, setTitle] = useState('');
@@ -38,19 +39,7 @@ export default function CreateRoom() {
     setError('');
 
     try {
-      const response = await fetch('/api/rooms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: title.trim() }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'ルームの作成に失敗しました');
-      }
+      const data = await createRoom(title.trim());
 
       setCreatedRoom({
         id: data.room.id,

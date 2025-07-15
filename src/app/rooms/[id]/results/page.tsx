@@ -15,33 +15,8 @@ import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
-
-interface VoteResult {
-  id: string;
-  name: string;
-  vote_count: number;
-}
-
-interface VoteStatus {
-  votedCount: number;
-  totalParticipants: number;
-  isComplete: boolean;
-}
-
-interface Room {
-  id: string;
-  title: string;
-  created_at: string;
-  expires_at: string;
-  status: 'waiting' | 'voting' | 'completed';
-}
-
-interface ResultsData {
-  room: Room;
-  results: VoteResult[];
-  voteStatus: VoteStatus;
-  winners: VoteResult[];
-}
+import { getVoteResults } from '@/service/voteService';
+import { ResultsData, VoteResult } from '@/types/database';
 
 export default function ResultsPage() {
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
@@ -55,13 +30,7 @@ export default function ResultsPage() {
   // 結果データを取得
   const fetchResults = useCallback(async () => {
     try {
-      const response = await fetch(`/api/rooms/${roomId}/results`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || '結果の取得に失敗しました');
-      }
-
+      const data = await getVoteResults(roomId);
       setResultsData(data);
     } catch (error) {
       const errorMessage =
