@@ -11,7 +11,7 @@ import {
   Badge,
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
@@ -38,10 +38,8 @@ export default function VotePage() {
 
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
 
   const roomId = params.id as string;
-  const participantId = searchParams.get('participantId');
 
   // ルーム情報を取得
   const fetchRoomData = useCallback(async () => {
@@ -57,8 +55,7 @@ export default function VotePage() {
 
   // 投票実行
   const handleVote = async () => {
-    const currentParticipantId =
-      participantId || restoreSession(roomId)?.participantId;
+    const currentParticipantId = restoreSession(roomId)?.participantId;
     if (!selectedParticipant || !currentParticipantId) {
       setError('投票対象を選択してください');
       return;
@@ -85,8 +82,7 @@ export default function VotePage() {
 
   // 投票者の名前を取得
   const getVoterName = () => {
-    const currentParticipantId =
-      participantId || restoreSession(roomId)?.participantId;
+    const currentParticipantId = restoreSession(roomId)?.participantId;
     if (!currentParticipantId || !roomData?.participants) return '不明';
     const voter = roomData.participants.find(
       p => p.id === currentParticipantId
@@ -106,25 +102,18 @@ export default function VotePage() {
   };
 
   useEffect(() => {
-    // participantIdが指定されていない場合、セッションから復元を試行
-    if (!participantId) {
-      const session = restoreSession(roomId);
-      if (session) {
-        // URLを更新（セッションから復元した場合）
-        router.replace(
-          `/rooms/${roomId}/vote?participantId=${session.participantId}`
-        );
-      } else {
-        setError(
-          '参加者IDが指定されていません。先にルームに参加してください。'
-        );
-        setIsLoading(false);
-        return;
-      }
+    // セッションから参加者IDを復元
+    const session = restoreSession(roomId);
+    if (!session) {
+      setError(
+        '参加者情報が見つかりません。先にルームに参加してください。'
+      );
+      setIsLoading(false);
+      return;
     }
 
     fetchRoomData();
-  }, [roomId, participantId, router, restoreSession, setError, fetchRoomData]);
+  }, [roomId, restoreSession, setError, fetchRoomData]);
 
   if (isLoading) {
     return <LoadingScreen message="投票画面を読み込み中..." />;
@@ -282,7 +271,7 @@ export default function VotePage() {
                     {participant.name}
                   </Text>
 
-                  {participant.id === participantId && (
+                  {participant.id === restoreSession(roomId)?.participantId && (
                     <Badge colorScheme="green" size="sm">
                       あなた
                     </Badge>

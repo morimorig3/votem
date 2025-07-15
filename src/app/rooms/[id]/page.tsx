@@ -129,7 +129,7 @@ export default function RoomPage() {
       setError('参加者として登録してから投票に参加してください');
       return;
     }
-    router.push(`/rooms/${roomId}/vote?participantId=${currentParticipant}`);
+    router.push(`/rooms/${roomId}/vote`);
   };
 
   // 結果確認
@@ -182,7 +182,7 @@ export default function RoomPage() {
           data.room.status === 'voting' &&
           currentParticipant
         ) {
-          router.push(`/rooms/${roomId}/vote?participantId=${currentParticipant}`);
+          router.push(`/rooms/${roomId}/vote`);
         }
       } catch (error) {
         handleError(error, 'SSEデータパースエラー');

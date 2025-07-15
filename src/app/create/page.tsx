@@ -15,7 +15,7 @@ export default function CreateRoom() {
     url: string;
     title: string;
   } | null>(null);
-  
+
   const { error, setError, clearError, handleError } = useError();
   const router = useRouter();
 
