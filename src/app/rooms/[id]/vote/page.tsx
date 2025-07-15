@@ -7,7 +7,7 @@ import ErrorScreen from '@/components/ErrorScreen';
 import VoteCompletedScreen from '@/components/vote/VoteCompletedScreen';
 import VoteEndedScreen from '@/components/vote/VoteEndedScreen';
 import MainVoteScreen from '@/components/vote/MainVoteScreen';
-import { getRoomData } from '@/service/roomService';
+import { getRoomData, cancelVoting } from '@/service/roomService';
 import { submitVote } from '@/service/voteService';
 import { RoomData } from '@/types/database';
 import { useError } from '@/hooks/useError';
@@ -84,6 +84,26 @@ export default function VotePage() {
     setSelectedParticipant(randomWinner.id);
   };
 
+  // 参加者追加（投票キャンセル）
+  const handleAddParticipant = async () => {
+    const confirmed = window.confirm('今回の投票を無効にして、参加ページに戻りますがよろしいですか？');
+    if (!confirmed) return;
+
+    const currentParticipantId = restoreSession(roomId)?.participantId;
+    if (!currentParticipantId) {
+      setError('参加者情報が見つかりません');
+      return;
+    }
+
+    try {
+      await cancelVoting(roomId, currentParticipantId);
+      // 投票キャンセルが成功した場合、ルーム画面に遷移
+      router.push(`/rooms/${roomId}`);
+    } catch (error) {
+      handleError(error, '投票キャンセルに失敗しました');
+    }
+  };
+
   useEffect(() => {
     // セッションから参加者IDを復元
     const session = restoreSession(roomId);
@@ -151,6 +171,7 @@ export default function VotePage() {
       onVote={handleVote}
       onRandomSelection={handleRandomSelection}
       onSelectParticipant={setSelectedParticipant}
+      onAddParticipant={handleAddParticipant}
     />
   );
 }

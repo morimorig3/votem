@@ -14,6 +14,7 @@ interface MainVoteScreenProps {
   onVote: () => void;
   onRandomSelection: () => void;
   onSelectParticipant: (participantId: string) => void;
+  onAddParticipant: () => void;
 }
 
 export default function MainVoteScreen({
@@ -25,6 +26,7 @@ export default function MainVoteScreen({
   onVote,
   onRandomSelection,
   onSelectParticipant,
+  onAddParticipant,
 }: MainVoteScreenProps) {
   return (
     <PageLayout maxWidth="4xl" padding={8}>
@@ -47,6 +49,7 @@ export default function MainVoteScreen({
           isTimeExpired={timeRemaining === '期限切れ'}
           onVote={onVote}
           onRandomSelection={onRandomSelection}
+          onAddParticipant={onAddParticipant}
         />
       </Stack>
     </PageLayout>

@@ -93,3 +93,28 @@ export const restartVoting = async (
 
   return data;
 };
+
+interface CancelVotingResponse {
+  success: boolean;
+}
+
+export const cancelVoting = async (
+  roomId: string,
+  participantId: string
+): Promise<CancelVotingResponse> => {
+  const response = await fetch(`/api/rooms/${roomId}/cancel-voting`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ participantId }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || '投票キャンセルに失敗しました');
+  }
+
+  return data;
+};

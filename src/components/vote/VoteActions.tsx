@@ -1,4 +1,4 @@
-import { Stack, Button, HStack } from '@chakra-ui/react';
+import { Stack, Button } from '@chakra-ui/react';
 
 interface VoteActionsProps {
   isVoting: boolean;
@@ -6,6 +6,7 @@ interface VoteActionsProps {
   isTimeExpired: boolean;
   onVote: () => void;
   onRandomSelection: () => void;
+  onAddParticipant: () => void;
 }
 
 export default function VoteActions({
@@ -14,14 +15,15 @@ export default function VoteActions({
   isTimeExpired,
   onVote,
   onRandomSelection,
+  onAddParticipant,
 }: VoteActionsProps) {
   return (
     <Stack gap={6} align="center">
-      <HStack gap={4} align="center">
+      <Stack direction={{ base: 'column', md: 'row' }} gap={4} align="center">
         <Button
-          colorScheme="blue"
           size="lg"
           minW="240px"
+          minH="50px"
           px={12}
           py={6}
           fontSize="lg"
@@ -34,9 +36,9 @@ export default function VoteActions({
         </Button>
 
         <Button
-          colorScheme="green"
           size="lg"
           minW="240px"
+          minH="50px"
           px={12}
           py={6}
           fontSize="lg"
@@ -45,7 +47,20 @@ export default function VoteActions({
         >
           ランダム選択
         </Button>
-      </HStack>
+        <Button
+          colorScheme="gray"
+          size="lg"
+          minW="240px"
+          minH="50px"
+          px={12}
+          py={6}
+          fontSize="lg"
+          onClick={onAddParticipant}
+          disabled={isTimeExpired}
+        >
+          参加者を追加
+        </Button>
+      </Stack>
     </Stack>
   );
 }
