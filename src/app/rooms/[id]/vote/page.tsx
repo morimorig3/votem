@@ -63,7 +63,7 @@ export default function VotePage() {
       // 結果画面に遷移
       setTimeout(() => {
         router.push(`/rooms/${roomId}/results`);
-      }, 2000);
+      }, 1000);
     } catch (error) {
       handleError(error, '投票に失敗しました');
     } finally {
@@ -85,7 +85,9 @@ export default function VotePage() {
   const handleRandomSelection = () => {
     if (!roomData?.participants || roomData.participants.length === 0) return;
 
-    const randomIndex = Math.floor(Math.random() * roomData.participants.length);
+    const randomIndex = Math.floor(
+      Math.random() * roomData.participants.length
+    );
     const randomWinner = roomData.participants[randomIndex];
 
     // 選択された参加者を設定
@@ -96,9 +98,7 @@ export default function VotePage() {
     // セッションから参加者IDを復元
     const session = restoreSession(roomId);
     if (!session) {
-      setError(
-        '参加者情報が見つかりません。先にルームに参加してください。'
-      );
+      setError('参加者情報が見つかりません。先にルームに参加してください。');
       setIsLoading(false);
       return;
     }
