@@ -9,7 +9,6 @@ import { RoomData } from '@/types/database';
 interface MainVoteScreenProps {
   roomData: RoomData;
   selectedParticipant: string | null;
-  voterName: string;
   timeRemaining: string | null;
   isVoting: boolean;
   error?: string;
@@ -21,7 +20,6 @@ interface MainVoteScreenProps {
 export default function MainVoteScreen({
   roomData,
   selectedParticipant,
-  voterName,
   timeRemaining,
   isVoting,
   error,
@@ -29,17 +27,13 @@ export default function MainVoteScreen({
   onRandomSelection,
   onSelectParticipant,
 }: MainVoteScreenProps) {
-
   return (
     <PageLayout maxWidth="4xl" padding={8}>
       <Stack gap={8}>
         <VoteHeader
           roomTitle={roomData.room.title}
-          voterName={voterName}
           timeRemaining={timeRemaining}
         />
-
-        <VoteInstructions />
 
         <ParticipantSelector
           participants={roomData.participants}
@@ -55,6 +49,7 @@ export default function MainVoteScreen({
           onVote={onVote}
           onRandomSelection={onRandomSelection}
         />
+        <VoteInstructions />
       </Stack>
     </PageLayout>
   );

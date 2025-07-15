@@ -71,16 +71,6 @@ export default function VotePage() {
     }
   };
 
-  // 投票者の名前を取得
-  const getVoterName = () => {
-    const currentParticipantId = restoreSession(roomId)?.participantId;
-    if (!currentParticipantId || !roomData?.participants) return '不明';
-    const voter = roomData.participants.find(
-      p => p.id === currentParticipantId
-    );
-    return voter?.name || '不明';
-  };
-
   // ランダム選択
   const handleRandomSelection = () => {
     if (!roomData?.participants || roomData.participants.length === 0) return;
@@ -155,7 +145,6 @@ export default function VotePage() {
     <MainVoteScreen
       roomData={roomData}
       selectedParticipant={selectedParticipant}
-      voterName={getVoterName()}
       timeRemaining={timeRemaining}
       isVoting={isVoting}
       error={error}

@@ -1,10 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  Button,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, Button } from '@chakra-ui/react';
 import PageLayout from '@/components/PageLayout';
 import AppHeader from '@/components/AppHeader';
 
@@ -22,9 +16,7 @@ export default function VoteEndedScreen({
 
         <Box bg="white" p={8} borderRadius="lg" shadow="sm">
           <Stack gap={4}>
-            <Heading size="lg" color="blue.500">
-              投票終了
-            </Heading>
+            <Heading size="lg">投票終了</Heading>
             <Text color="gray.600">この投票は既に終了しています。</Text>
             <Button onClick={onViewResults} colorScheme="blue">
               結果を確認する

@@ -1,7 +1,4 @@
-import {
-  Stack,
-  Button,
-} from '@chakra-ui/react';
+import { Stack, Button, HStack } from '@chakra-ui/react';
 
 interface VoteActionsProps {
   isVoting: boolean;
@@ -20,10 +17,11 @@ export default function VoteActions({
 }: VoteActionsProps) {
   return (
     <Stack gap={6} align="center">
-      <Stack gap={4} align="center">
+      <HStack gap={4} align="center">
         <Button
           colorScheme="blue"
           size="lg"
+          minW="240px"
           px={12}
           py={6}
           fontSize="lg"
@@ -38,6 +36,7 @@ export default function VoteActions({
         <Button
           colorScheme="green"
           size="lg"
+          minW="240px"
           px={12}
           py={6}
           fontSize="lg"
@@ -46,7 +45,7 @@ export default function VoteActions({
         >
           ランダム選択
         </Button>
-      </Stack>
+      </HStack>
     </Stack>
   );
 }

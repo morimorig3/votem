@@ -27,18 +27,15 @@ export default function MainResultsScreen({
           roomStatus={resultsData.room.status}
           timeRemaining={timeRemaining}
         />
-
-        <VoteStatusCard
-          voteStatus={resultsData.voteStatus}
-          roomStatus={resultsData.room.status}
-        />
-
         <VoteResultsList
           results={resultsData.results}
           winners={resultsData.winners}
           votedCount={resultsData.voteStatus.votedCount}
         />
-
+        <VoteStatusCard
+          voteStatus={resultsData.voteStatus}
+          roomStatus={resultsData.room.status}
+        />
         <ResultsActions
           isComplete={resultsData.voteStatus.isComplete}
           roomStatus={resultsData.room.status}

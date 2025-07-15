@@ -62,18 +62,11 @@ export default function CreateRoom() {
     }
   };
 
-  const createNewRoom = () => {
-    setCreatedRoom(null);
-    setTitle('');
-    clearError();
-  };
-
   return createdRoom ? (
     <RoomCreatedScreen
       createdRoom={createdRoom}
       onCopyToClipboard={copyToClipboard}
       onGoToRoom={goToRoom}
-      onCreateNewRoom={createNewRoom}
     />
   ) : (
     <CreateRoomScreen

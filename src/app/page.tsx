@@ -18,9 +18,20 @@ export default function Home() {
           {/* ヘッダー */}
           <Stack gap={6} textAlign="center">
             <AppHeader size="2xl" />
-            <Text fontSize="xl" color="gray.600" maxW="600px" mx="auto">
-              チームの決定を簡単に。匿名投票でスムーズな意思決定を。
-            </Text>
+          </Stack>
+
+          {/* CTA */}
+          <Stack gap={4} align="center">
+            <Button
+              colorScheme="blue"
+              size="lg"
+              px={12}
+              py={6}
+              fontSize="lg"
+              onClick={handleCreateRoom}
+            >
+              投票ルームを作成
+            </Button>
           </Stack>
 
           {/* 使い方 */}
@@ -36,23 +47,6 @@ export default function Home() {
               </Stack>
             </Stack>
           </Box>
-
-          {/* CTA */}
-          <Stack gap={4} align="center">
-            <Button
-              colorScheme="blue"
-              size="lg"
-              px={12}
-              py={6}
-              fontSize="lg"
-              onClick={handleCreateRoom}
-            >
-              投票ルームを作成
-            </Button>
-            <Text fontSize="sm" color="gray.500">
-              無料・登録不要・30分で自動削除
-            </Text>
-          </Stack>
       </Stack>
     </PageLayout>
   );

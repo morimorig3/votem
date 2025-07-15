@@ -1,16 +1,7 @@
 'use client';
 
-import {
-  Box,
-  Stack,
-  Text,
-  Button,
-  Input,
-  Heading,
-} from '@chakra-ui/react';
-import Link from 'next/link';
+import { Box, Stack, Text, Button, Input, Heading } from '@chakra-ui/react';
 import PageLayout from './PageLayout';
-import AppHeader from './AppHeader';
 
 interface CreateRoomScreenProps {
   title: string;
@@ -31,11 +22,7 @@ export default function CreateRoomScreen({
     <PageLayout maxWidth="lg" padding={20}>
       <Stack gap={8}>
         <Stack gap={4} textAlign="center">
-          <AppHeader size="xl" />
-          <Heading size="lg">投票ルームを作成</Heading>
-          <Text color="gray.600">
-            投票の内容がわかるタイトルを入力してください
-          </Text>
+          <Heading size="lg">ルームを作成してください</Heading>
         </Stack>
 
         <Box bg="white" p={6} borderRadius="lg" shadow="sm" w="100%">
@@ -71,25 +58,6 @@ export default function CreateRoomScreen({
             </Stack>
           </form>
         </Box>
-
-        <Stack gap={4} textAlign="center">
-          <Text fontSize="sm" color="gray.500">
-            • 登録不要・無料で利用できます
-            <br />
-            • ルームは30分後に自動削除されます
-            <br />• 最大50人まで参加可能です
-          </Text>
-
-          <Link href="/">
-            <Text
-              color="blue.500"
-              cursor="pointer"
-              _hover={{ textDecoration: 'underline' }}
-            >
-              ← ホームに戻る
-            </Text>
-          </Link>
-        </Stack>
       </Stack>
     </PageLayout>
   );

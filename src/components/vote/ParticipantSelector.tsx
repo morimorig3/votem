@@ -1,10 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  SimpleGrid,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, SimpleGrid } from '@chakra-ui/react';
 import { Participant } from '@/types/database';
 
 interface ParticipantSelectorProps {
@@ -23,7 +17,7 @@ export default function ParticipantSelector({
   return (
     <Stack gap={6}>
       <Heading size="md" textAlign="center">
-        投票対象を選択してください
+        選択してください
       </Heading>
 
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
@@ -32,13 +26,9 @@ export default function ParticipantSelector({
             key={participant.id}
             cursor="pointer"
             onClick={() => onSelectParticipant(participant.id)}
-            bg={
-              selectedParticipantId === participant.id ? 'blue.50' : 'white'
-            }
+            bg={selectedParticipantId === participant.id ? 'blue.50' : 'white'}
             borderColor={
-              selectedParticipantId === participant.id
-                ? 'blue.300'
-                : 'gray.200'
+              selectedParticipantId === participant.id ? 'blue.300' : 'gray.200'
             }
             borderWidth="2px"
             borderRadius="lg"

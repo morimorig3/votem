@@ -17,7 +17,7 @@ export default function LoadingScreen({
       alignItems="center"
       justifyContent="center"
     >
-      <Stack gap={4} textAlign="center">
+      <Stack gap={4} alignItems="center">
         <Spinner size="xl" color="blue.500" />
         <Text>{message}</Text>
       </Stack>

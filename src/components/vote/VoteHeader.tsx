@@ -1,20 +1,13 @@
-import {
-  Stack,
-  Heading,
-  Text,
-  Badge,
-} from '@chakra-ui/react';
+import { Stack, Heading, Text, Badge } from '@chakra-ui/react';
 import AppHeader from '@/components/AppHeader';
 
 interface VoteHeaderProps {
   roomTitle: string;
-  voterName: string;
   timeRemaining: string | null;
 }
 
 export default function VoteHeader({
   roomTitle,
-  voterName,
   timeRemaining,
 }: VoteHeaderProps) {
   return (
@@ -42,13 +35,6 @@ export default function VoteHeader({
           </Text>
         )}
       </Stack>
-
-      <Text color="gray.600">
-        投票者:{' '}
-        <Text as="span" fontWeight="bold" color="blue.600">
-          {voterName}
-        </Text>
-      </Text>
     </Stack>
   );
 }

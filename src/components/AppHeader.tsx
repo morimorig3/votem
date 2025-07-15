@@ -10,14 +10,8 @@ interface AppHeaderProps {
 export default function AppHeader({ size = 'lg' }: AppHeaderProps) {
   return (
     <Link href="/">
-      <Heading
-        size={size}
-        color="blue.500"
-        cursor="pointer"
-        _hover={{ textDecoration: 'underline' }}
-        textAlign="center"
-      >
-        VoTem
+      <Heading size={size} cursor="pointer" textAlign="center" fontWeight={700}>
+        投票アプリ
       </Heading>
     </Link>
   );
