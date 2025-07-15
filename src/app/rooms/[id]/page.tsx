@@ -20,63 +20,27 @@ import { getRoomData } from '@/service/roomService';
 import { joinRoom } from '@/service/participantService';
 import { RoomData, Participant } from '@/types/database';
 import { useError } from '@/hooks/useError';
+import { useSession } from '@/hooks/useSession';
 
 export default function RoomPage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [newParticipantName, setNewParticipantName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [currentParticipant, setCurrentParticipant] = useState<string | null>(
-    null
-  );
   const [currentTime, setCurrentTime] = useState(new Date());
   
   const { error, setError, clearError, handleError } = useError();
+  const {
+    currentParticipant,
+    setCurrentParticipant,
+    saveSession,
+    restoreSession,
+    clearSession,
+  } = useSession();
 
   const router = useRouter();
   const params = useParams();
   const roomId = params.id as string;
-
-  // LocalStorageのキー
-  const getStorageKey = useCallback(
-    () => `votem_participant_${roomId}`,
-    [roomId]
-  );
-
-  // セッション情報を保存
-  const saveSession = (participantId: string, participantName: string) => {
-    const sessionData = {
-      participantId,
-      participantName,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(getStorageKey(), JSON.stringify(sessionData));
-  };
-
-  // セッション情報を復元
-  const restoreSession = useCallback(() => {
-    try {
-      const stored = localStorage.getItem(getStorageKey());
-      if (stored) {
-        const sessionData = JSON.parse(stored);
-        // 24時間以内のセッションのみ有効
-        if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
-          return sessionData;
-        } else {
-          localStorage.removeItem(getStorageKey());
-        }
-      }
-    } catch (error) {
-      handleError(error, 'セッション復元エラー');
-      localStorage.removeItem(getStorageKey());
-    }
-    return null;
-  }, [getStorageKey]);
-
-  // セッション情報をクリア
-  const clearSession = useCallback(() => {
-    localStorage.removeItem(getStorageKey());
-  }, [getStorageKey]);
 
   // ルーム情報を取得
   const fetchRoomData = useCallback(async () => {
@@ -91,7 +55,7 @@ export default function RoomPage() {
         );
         if (!participantExists) {
           // 参加者が存在しない場合はセッションをクリア
-          clearSession();
+          clearSession(roomId);
           setCurrentParticipant(null);
         }
       }
@@ -100,7 +64,7 @@ export default function RoomPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, currentParticipant, clearSession]);
+  }, [roomId, currentParticipant, clearSession, handleError]);
 
   // 参加者追加
   const handleJoinRoom = async (e: React.FormEvent) => {
@@ -122,7 +86,7 @@ export default function RoomPage() {
       setNewParticipantName('');
 
       // セッション情報を保存
-      saveSession(data.participant.id, data.participant.name);
+      saveSession(data.participant.id, data.participant.name, roomId);
 
       // ルーム情報を再取得
       await fetchRoomData();
@@ -157,7 +121,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     // セッション復元を試行
-    const session = restoreSession();
+    const session = restoreSession(roomId);
     if (session) {
       setCurrentParticipant(session.participantId);
     }
@@ -180,7 +144,7 @@ export default function RoomPage() {
             (p: Participant) => p.id === currentParticipant
           );
           if (!participantExists) {
-            clearSession();
+            clearSession(roomId);
             setCurrentParticipant(null);
           }
         }
@@ -213,7 +177,7 @@ export default function RoomPage() {
     return () => {
       eventSource.close();
     };
-  }, [roomId, fetchRoomData, restoreSession, currentParticipant, clearSession]);
+  }, [roomId, fetchRoomData, restoreSession, currentParticipant, clearSession, handleError, setCurrentParticipant]);
 
   // 1秒ごとに現在時刻を更新（残り時間表示のため）
   useEffect(() => {

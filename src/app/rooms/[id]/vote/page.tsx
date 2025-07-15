@@ -20,6 +20,7 @@ import { getRoomData } from '@/service/roomService';
 import { submitVote } from '@/service/voteService';
 import { RoomData } from '@/types/database';
 import { useError } from '@/hooks/useError';
+import { useSession } from '@/hooks/useSession';
 
 export default function VotePage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -31,6 +32,7 @@ export default function VotePage() {
   const [hasVoted, setHasVoted] = useState(false);
   
   const { error, setError, clearError, handleError } = useError();
+  const { restoreSession } = useSession();
 
   const router = useRouter();
   const params = useParams();
@@ -38,28 +40,6 @@ export default function VotePage() {
 
   const roomId = params.id as string;
   const participantId = searchParams.get('participantId');
-
-  // LocalStorageのキー
-  const getStorageKey = () => `votem_participant_${roomId}`;
-
-  // セッション情報を復元
-  const restoreSession = () => {
-    try {
-      const stored = localStorage.getItem(getStorageKey());
-      if (stored) {
-        const sessionData = JSON.parse(stored);
-        if (Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000) {
-          return sessionData;
-        } else {
-          localStorage.removeItem(getStorageKey());
-        }
-      }
-    } catch (error) {
-      handleError(error, 'セッション復元エラー');
-      localStorage.removeItem(getStorageKey());
-    }
-    return null;
-  };
 
   // ルーム情報を取得
   const fetchRoomData = async () => {
@@ -76,7 +56,7 @@ export default function VotePage() {
   // 投票実行
   const handleVote = async () => {
     const currentParticipantId =
-      participantId || restoreSession()?.participantId;
+      participantId || restoreSession(roomId)?.participantId;
     if (!selectedParticipant || !currentParticipantId) {
       setError('投票対象を選択してください');
       return;
@@ -121,7 +101,7 @@ export default function VotePage() {
   // 投票者の名前を取得
   const getVoterName = () => {
     const currentParticipantId =
-      participantId || restoreSession()?.participantId;
+      participantId || restoreSession(roomId)?.participantId;
     if (!currentParticipantId || !roomData?.participants) return '不明';
     const voter = roomData.participants.find(
       p => p.id === currentParticipantId
@@ -132,7 +112,7 @@ export default function VotePage() {
   useEffect(() => {
     // participantIdが指定されていない場合、セッションから復元を試行
     if (!participantId) {
-      const session = restoreSession();
+      const session = restoreSession(roomId);
       if (session) {
         // URLを更新（セッションから復元した場合）
         router.replace(
@@ -148,7 +128,7 @@ export default function VotePage() {
     }
 
     fetchRoomData();
-  }, [roomId, participantId, router]);
+  }, [roomId, participantId, router, restoreSession, setError]);
 
   if (isLoading) {
     return <LoadingScreen message="投票画面を読み込み中..." />;
