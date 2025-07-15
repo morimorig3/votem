@@ -1,21 +1,12 @@
 'use client';
 
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  Button,
-  SimpleGrid,
-  Spinner,
-  Badge,
-} from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import LoadingScreen from '@/components/LoadingScreen';
-import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
-import AppHeader from '@/components/AppHeader';
+import VoteCompletedScreen from '@/components/vote/VoteCompletedScreen';
+import VoteEndedScreen from '@/components/vote/VoteEndedScreen';
+import MainVoteScreen from '@/components/vote/MainVoteScreen';
 import { getRoomData } from '@/service/roomService';
 import { submitVote } from '@/service/voteService';
 import { RoomData } from '@/types/database';
@@ -130,223 +121,30 @@ export default function VotePage() {
   }
 
   if (hasVoted) {
-    return (
-      <PageLayout maxWidth="lg" padding={20}>
-        <Stack gap={8} textAlign="center">
-          <AppHeader size="xl" />
-
-          <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-            <Stack gap={6}>
-              <Heading size="lg" color="green.500">
-                投票完了！
-              </Heading>
-              <Text color="gray.600">
-                投票が正常に完了しました。
-                <br />
-                結果画面に自動で移動します...
-              </Text>
-              <Spinner color="green.500" size="lg" />
-            </Stack>
-          </Box>
-        </Stack>
-      </PageLayout>
-    );
+    return <VoteCompletedScreen />;
   }
 
   if (roomData.room.status === 'completed') {
     return (
-      <PageLayout maxWidth="lg" padding={20}>
-        <Stack gap={8} textAlign="center">
-          <AppHeader size="xl" />
-
-          <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-            <Stack gap={4}>
-              <Heading size="lg" color="blue.500">
-                投票終了
-              </Heading>
-              <Text color="gray.600">この投票は既に終了しています。</Text>
-              <Button
-                onClick={() => router.push(`/rooms/${roomId}/results`)}
-                colorScheme="blue"
-              >
-                結果を確認する
-              </Button>
-            </Stack>
-          </Box>
-        </Stack>
-      </PageLayout>
+      <VoteEndedScreen
+        onViewResults={() => router.push(`/rooms/${roomId}/results`)}
+      />
     );
   }
 
   return (
-    <PageLayout maxWidth="4xl" padding={8}>
-      <Stack gap={8}>
-        {/* ヘッダー */}
-        <Stack gap={4} textAlign="center">
-          <AppHeader size="lg" />
-
-          <Heading size="xl">{roomData.room.title}</Heading>
-
-          <Stack
-            direction={{ base: 'column', md: 'row' }}
-            gap={4}
-            justify="center"
-            align="center"
-          >
-            <Badge colorScheme="yellow" p={2} borderRadius="md">
-              投票中
-            </Badge>
-
-            {timeRemaining && (
-              <Text
-                fontSize="sm"
-                color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
-              >
-                残り時間: {timeRemaining}
-              </Text>
-            )}
-          </Stack>
-
-          <Text color="gray.600">
-            投票者:{' '}
-            <Text as="span" fontWeight="bold" color="blue.600">
-              {getVoterName()}
-            </Text>
-          </Text>
-        </Stack>
-
-        {/* 投票説明 */}
-        <Box
-          bg="blue.50"
-          p={6}
-          borderRadius="lg"
-          borderLeft="4px solid"
-          borderColor="blue.500"
-        >
-          <Stack gap={2}>
-            <Text fontWeight="bold" color="blue.700">
-              投票方法
-            </Text>
-            <Text color="blue.600" fontSize="sm">
-              下の参加者の中から1人を選んで投票してください。自分自身に投票することも可能です。
-              <br />
-              または「ランダム選択」ボタンで参加者の中からランダムに1人を選択することもできます。
-            </Text>
-          </Stack>
-        </Box>
-
-        {/* 参加者選択 */}
-        <Stack gap={6}>
-          <Heading size="md" textAlign="center">
-            投票対象を選択してください
-          </Heading>
-
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-            {roomData.participants.map(participant => (
-              <Box
-                key={participant.id}
-                cursor="pointer"
-                onClick={() => setSelectedParticipant(participant.id)}
-                bg={
-                  selectedParticipant === participant.id ? 'blue.50' : 'white'
-                }
-                borderColor={
-                  selectedParticipant === participant.id
-                    ? 'blue.300'
-                    : 'gray.200'
-                }
-                borderWidth="2px"
-                borderRadius="lg"
-                p={6}
-                shadow="sm"
-                _hover={{
-                  borderColor: 'blue.300',
-                  transform: 'translateY(-2px)',
-                  shadow: 'md',
-                }}
-                transition="all 0.2s"
-              >
-                <Stack gap={3} textAlign="center">
-                  <Text fontWeight="bold" fontSize="lg">
-                    {participant.name}
-                  </Text>
-
-                  {participant.id === restoreSession(roomId)?.participantId && (
-                    <Badge colorScheme="green" size="sm">
-                      あなた
-                    </Badge>
-                  )}
-
-                  {selectedParticipant === participant.id && (
-                    <Badge colorScheme="blue" size="sm">
-                      選択中
-                    </Badge>
-                  )}
-                </Stack>
-              </Box>
-            ))}
-          </SimpleGrid>
-
-          {error && (
-            <Text color="red.500" textAlign="center" fontWeight="medium">
-              {error}
-            </Text>
-          )}
-        </Stack>
-
-        {/* 投票・アクションボタン */}
-        <Stack gap={6} align="center">
-          <Stack gap={4} align="center">
-            <Button
-              colorScheme="blue"
-              size="lg"
-              px={12}
-              py={6}
-              fontSize="lg"
-              onClick={handleVote}
-              loading={isVoting}
-              loadingText="投票中..."
-              disabled={!selectedParticipant || timeRemaining === '期限切れ'}
-            >
-              この人に投票する
-            </Button>
-
-            <Button
-              colorScheme="green"
-              size="lg"
-              px={12}
-              py={6}
-              fontSize="lg"
-              onClick={handleRandomSelection}
-              disabled={timeRemaining === '期限切れ'}
-            >
-              ランダム選択
-            </Button>
-          </Stack>
-
-          <Stack
-            direction={{ base: 'column', md: 'row' }}
-            gap={4}
-            textAlign="center"
-          >
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/rooms/${roomId}`)}
-              size="sm"
-            >
-              ルームに戻る
-            </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => router.push(`/rooms/${roomId}/results`)}
-              size="sm"
-            >
-              途中結果を確認
-            </Button>
-          </Stack>
-        </Stack>
-      </Stack>
-    </PageLayout>
+    <MainVoteScreen
+      roomId={roomId}
+      roomData={roomData}
+      selectedParticipant={selectedParticipant}
+      currentParticipantId={restoreSession(roomId)?.participantId || null}
+      voterName={getVoterName()}
+      timeRemaining={timeRemaining}
+      isVoting={isVoting}
+      error={error}
+      onVote={handleVote}
+      onRandomSelection={handleRandomSelection}
+      onSelectParticipant={setSelectedParticipant}
+    />
   );
 }
