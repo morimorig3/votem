@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 開発ルール
+
+- 作業完了時にPrettierを実行すること
+- 作業完了時にtscを実行して型エラーが出ないことを確認すること
+
 ## プロジェクト概要
 
 VoTemは匿名投票・ランダム選択システムです。投票主催者がルームを作成し、参加者がURLでアクセスして匿名投票を行います。
