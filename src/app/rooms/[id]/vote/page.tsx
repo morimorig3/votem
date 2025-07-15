@@ -71,7 +71,6 @@ export default function VotePage() {
       await submitVote(roomId, currentParticipantId, selectedParticipant);
 
       setHasVoted(true);
-      alert('投票が完了しました！');
 
       // 結果画面に遷移
       setTimeout(() => {
@@ -93,6 +92,17 @@ export default function VotePage() {
       p => p.id === currentParticipantId
     );
     return voter?.name || '不明';
+  };
+
+  // ランダム選択
+  const handleRandomSelection = () => {
+    if (!roomData?.participants || roomData.participants.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * roomData.participants.length);
+    const randomWinner = roomData.participants[randomIndex];
+
+    // 選択された参加者を設定
+    setSelectedParticipant(randomWinner.id);
   };
 
   useEffect(() => {
@@ -230,6 +240,8 @@ export default function VotePage() {
             </Text>
             <Text color="blue.600" fontSize="sm">
               下の参加者の中から1人を選んで投票してください。自分自身に投票することも可能です。
+              <br />
+              または「ランダム選択」ボタンで参加者の中からランダムに1人を選択することもできます。
             </Text>
           </Stack>
         </Box>
@@ -293,21 +305,35 @@ export default function VotePage() {
           )}
         </Stack>
 
-        {/* 投票ボタン */}
-        <Stack gap={4} align="center">
-          <Button
-            colorScheme="blue"
-            size="lg"
-            px={12}
-            py={6}
-            fontSize="lg"
-            onClick={handleVote}
-            loading={isVoting}
-            loadingText="投票中..."
-            disabled={!selectedParticipant || timeRemaining === '期限切れ'}
-          >
-            この人に投票する
-          </Button>
+        {/* 投票・アクションボタン */}
+        <Stack gap={6} align="center">
+          <Stack gap={4} align="center">
+            <Button
+              colorScheme="blue"
+              size="lg"
+              px={12}
+              py={6}
+              fontSize="lg"
+              onClick={handleVote}
+              loading={isVoting}
+              loadingText="投票中..."
+              disabled={!selectedParticipant || timeRemaining === '期限切れ'}
+            >
+              この人に投票する
+            </Button>
+
+            <Button
+              colorScheme="green"
+              size="lg"
+              px={12}
+              py={6}
+              fontSize="lg"
+              onClick={handleRandomSelection}
+              disabled={timeRemaining === '期限切れ'}
+            >
+              ランダム選択
+            </Button>
+          </Stack>
 
           <Stack
             direction={{ base: 'column', md: 'row' }}

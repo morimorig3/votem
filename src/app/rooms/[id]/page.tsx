@@ -91,8 +91,6 @@ export default function RoomPage() {
 
       // ルーム情報を再取得
       await fetchRoomData();
-
-      alert('ルームに参加しました！');
     } catch (error) {
       handleError(error, '参加に失敗しました');
     } finally {

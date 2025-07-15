@@ -64,15 +64,6 @@ export default function ResultsPage() {
     return rank;
   };
 
-  // ランダム選択
-  const handleRandomSelection = () => {
-    if (!resultsData?.results || resultsData.results.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * resultsData.results.length);
-    const randomWinner = resultsData.results[randomIndex];
-
-    alert(`ランダム選択結果: ${randomWinner.name} さんが選ばれました！`);
-  };
 
   useEffect(() => {
     // 初回データ取得
@@ -358,16 +349,7 @@ export default function ResultsPage() {
 
           {/* アクションボタン */}
           <Stack gap={4} align="center">
-            <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} w="100%">
-              <Button
-                colorScheme="green"
-                size="lg"
-                onClick={handleRandomSelection}
-                disabled={resultsData.results.length === 0}
-              >
-                ランダム選択
-              </Button>
-
+            <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="100%">
               <Button
                 variant="outline"
                 size="lg"
