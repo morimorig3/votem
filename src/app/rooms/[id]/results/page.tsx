@@ -6,14 +6,15 @@ import {
   Heading,
   Text,
   Button,
-  Container,
   SimpleGrid,
   Badge,
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
 import LoadingScreen from '@/components/LoadingScreen';
+import PageLayout from '@/components/PageLayout';
+import ErrorScreen from '@/components/ErrorScreen';
+import AppHeader from '@/components/AppHeader';
 
 interface VoteResult {
   id: string;
@@ -164,58 +165,22 @@ export default function ResultsPage() {
 
   if (error || !resultsData) {
     return (
-      <Box bg="gray.50" minH="100vh">
-        <Container maxW="lg" py={20}>
-          <Stack gap={8} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="xl"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
-
-            <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-              <Stack gap={4}>
-                <Heading size="lg" color="red.500">
-                  エラーが発生しました
-                </Heading>
-                <Text color="gray.600">{error}</Text>
-                <Button
-                  onClick={() => router.push(`/rooms/${roomId}`)}
-                  colorScheme="blue"
-                >
-                  ルームに戻る
-                </Button>
-              </Stack>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
+      <ErrorScreen
+        message={error}
+        buttonText="ルームに戻る"
+        onButtonClick={() => router.push(`/rooms/${roomId}`)}
+      />
     );
   }
 
   const timeRemaining = getTimeRemaining();
 
   return (
-    <Box bg="gray.50" minH="100vh">
-      <Container maxW="4xl" py={8}>
-        <Stack gap={8}>
+    <PageLayout maxWidth="4xl" padding={8}>
+      <Stack gap={8}>
           {/* ヘッダー */}
           <Stack gap={4} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="lg"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
+            <AppHeader size="lg" />
 
             <Heading size="xl">{resultsData.room.title}</Heading>
 
@@ -475,8 +440,7 @@ export default function ResultsPage() {
                 </Text>
               )}
           </Stack>
-        </Stack>
-      </Container>
-    </Box>
+      </Stack>
+    </PageLayout>
   );
 }

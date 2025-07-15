@@ -6,15 +6,16 @@ import {
   Heading,
   Text,
   Button,
-  Container,
   SimpleGrid,
   Spinner,
   Badge,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import LoadingScreen from '@/components/LoadingScreen';
+import PageLayout from '@/components/PageLayout';
+import ErrorScreen from '@/components/ErrorScreen';
+import AppHeader from '@/components/AppHeader';
 
 interface Participant {
   id: string;
@@ -170,13 +171,10 @@ export default function VotePage() {
   };
 
   useEffect(() => {
-    let finalParticipantId = participantId;
-
     // participantIdが指定されていない場合、セッションから復元を試行
     if (!participantId) {
       const session = restoreSession();
       if (session) {
-        finalParticipantId = session.participantId;
         // URLを更新（セッションから復元した場合）
         router.replace(
           `/rooms/${roomId}/vote?participantId=${session.participantId}`
@@ -199,129 +197,71 @@ export default function VotePage() {
 
   if (error || !roomData) {
     return (
-      <Box bg="gray.50" minH="100vh">
-        <Container maxW="lg" py={20}>
-          <Stack gap={8} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="xl"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
-
-            <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-              <Stack gap={4}>
-                <Heading size="lg" color="red.500">
-                  エラーが発生しました
-                </Heading>
-                <Text color="gray.600">{error}</Text>
-                <Button
-                  onClick={() => router.push(`/rooms/${roomId}`)}
-                  colorScheme="blue"
-                >
-                  ルームに戻る
-                </Button>
-              </Stack>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
+      <ErrorScreen
+        message={error}
+        buttonText="ルームに戻る"
+        onButtonClick={() => router.push(`/rooms/${roomId}`)}
+      />
     );
   }
 
   if (hasVoted) {
     return (
-      <Box bg="gray.50" minH="100vh">
-        <Container maxW="lg" py={20}>
-          <Stack gap={8} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="xl"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
+      <PageLayout maxWidth="lg" padding={20}>
+        <Stack gap={8} textAlign="center">
+          <AppHeader size="xl" />
 
-            <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-              <Stack gap={6}>
-                <Heading size="lg" color="green.500">
-                  投票完了！
-                </Heading>
-                <Text color="gray.600">
-                  投票が正常に完了しました。
-                  <br />
-                  結果画面に自動で移動します...
-                </Text>
-                <Spinner color="green.500" size="lg" />
-              </Stack>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
+          <Box bg="white" p={8} borderRadius="lg" shadow="sm">
+            <Stack gap={6}>
+              <Heading size="lg" color="green.500">
+                投票完了！
+              </Heading>
+              <Text color="gray.600">
+                投票が正常に完了しました。
+                <br />
+                結果画面に自動で移動します...
+              </Text>
+              <Spinner color="green.500" size="lg" />
+            </Stack>
+          </Box>
+        </Stack>
+      </PageLayout>
     );
   }
 
   if (roomData.room.status === 'completed') {
     return (
-      <Box bg="gray.50" minH="100vh">
-        <Container maxW="lg" py={20}>
-          <Stack gap={8} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="xl"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
+      <PageLayout maxWidth="lg" padding={20}>
+        <Stack gap={8} textAlign="center">
+          <AppHeader size="xl" />
 
-            <Box bg="white" p={8} borderRadius="lg" shadow="sm">
-              <Stack gap={4}>
-                <Heading size="lg" color="blue.500">
-                  投票終了
-                </Heading>
-                <Text color="gray.600">この投票は既に終了しています。</Text>
-                <Button
-                  onClick={() => router.push(`/rooms/${roomId}/results`)}
-                  colorScheme="blue"
-                >
-                  結果を確認する
-                </Button>
-              </Stack>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
+          <Box bg="white" p={8} borderRadius="lg" shadow="sm">
+            <Stack gap={4}>
+              <Heading size="lg" color="blue.500">
+                投票終了
+              </Heading>
+              <Text color="gray.600">この投票は既に終了しています。</Text>
+              <Button
+                onClick={() => router.push(`/rooms/${roomId}/results`)}
+                colorScheme="blue"
+              >
+                結果を確認する
+              </Button>
+            </Stack>
+          </Box>
+        </Stack>
+      </PageLayout>
     );
   }
 
   const timeRemaining = getTimeRemaining();
 
   return (
-    <Box bg="gray.50" minH="100vh">
-      <Container maxW="4xl" py={8}>
-        <Stack gap={8}>
+    <PageLayout maxWidth="4xl" padding={8}>
+      <Stack gap={8}>
           {/* ヘッダー */}
           <Stack gap={4} textAlign="center">
-            <Link href="/">
-              <Heading
-                size="lg"
-                color="blue.500"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                VoTem
-              </Heading>
-            </Link>
+            <AppHeader size="lg" />
 
             <Heading size="xl">{roomData.room.title}</Heading>
 
@@ -468,8 +408,7 @@ export default function VotePage() {
               </Button>
             </Stack>
           </Stack>
-        </Stack>
-      </Container>
-    </Box>
+      </Stack>
+    </PageLayout>
   );
 }

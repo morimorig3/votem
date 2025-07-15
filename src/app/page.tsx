@@ -1,7 +1,9 @@
 'use client';
 
-import { Box, Stack, Heading, Text, Button, Container } from '@chakra-ui/react';
+import { Stack, Text, Button, Box, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
+import PageLayout from '@/components/PageLayout';
+import AppHeader from '@/components/AppHeader';
 
 export default function Home() {
   const router = useRouter();
@@ -11,14 +13,11 @@ export default function Home() {
   };
 
   return (
-    <Box bg="gray.50" minH="100vh">
-      <Container maxW="4xl" py={20}>
-        <Stack gap={12}>
+    <PageLayout maxWidth="4xl" padding={20}>
+      <Stack gap={12}>
           {/* ヘッダー */}
           <Stack gap={6} textAlign="center">
-            <Heading size="2xl" color="blue.500">
-              VoTem
-            </Heading>
+            <AppHeader size="2xl" />
             <Text fontSize="xl" color="gray.600" maxW="600px" mx="auto">
               チームの決定を簡単に。匿名投票でスムーズな意思決定を。
             </Text>
@@ -54,8 +53,7 @@ export default function Home() {
               無料・登録不要・30分で自動削除
             </Text>
           </Stack>
-        </Stack>
-      </Container>
-    </Box>
+      </Stack>
+    </PageLayout>
   );
 }

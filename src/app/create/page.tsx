@@ -3,15 +3,16 @@
 import {
   Box,
   Stack,
-  Heading,
   Text,
   Button,
-  Container,
   Input,
+  Heading,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PageLayout from '@/components/PageLayout';
+import AppHeader from '@/components/AppHeader';
 
 export default function CreateRoom() {
   const [title, setTitle] = useState('');
@@ -87,10 +88,8 @@ export default function CreateRoom() {
 
   if (createdRoom) {
     return (
-      <>
-        <Box bg="gray.50" minH="100vh">
-          <Container maxW="2xl" py={20}>
-            <Stack gap={8}>
+      <PageLayout maxWidth="2xl" padding={20}>
+        <Stack gap={8}>
               <Stack gap={4} textAlign="center">
                 <Heading size="lg" color="blue.500">
                   ルームを作成しました！
@@ -166,29 +165,16 @@ export default function CreateRoom() {
               >
                 新しいルームを作成
               </Button>
-            </Stack>
-          </Container>
-        </Box>
-      </>
+        </Stack>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Box bg="gray.50" minH="100vh">
-        <Container maxW="lg" py={20}>
-          <Stack gap={8}>
+    <PageLayout maxWidth="lg" padding={20}>
+      <Stack gap={8}>
             <Stack gap={4} textAlign="center">
-              <Link href="/">
-                <Heading
-                  size="xl"
-                  color="blue.500"
-                  cursor="pointer"
-                  _hover={{ textDecoration: 'underline' }}
-                >
-                  VoTem
-                </Heading>
-              </Link>
+              <AppHeader size="xl" />
               <Heading size="lg">投票ルームを作成</Heading>
               <Text color="gray.600">
                 投票の内容がわかるタイトルを入力してください
@@ -247,9 +233,7 @@ export default function CreateRoom() {
                 </Text>
               </Link>
             </Stack>
-          </Stack>
-        </Container>
-      </Box>
-    </>
+      </Stack>
+    </PageLayout>
   );
 }
