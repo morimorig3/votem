@@ -12,9 +12,9 @@ import { query } from '@/lib/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const roomId = params.id;
+  const { id: roomId } = await params;
   let participantId: string | undefined;
   let selectedParticipantId: string | undefined;
 

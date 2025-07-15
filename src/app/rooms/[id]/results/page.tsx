@@ -18,12 +18,14 @@ import AppHeader from '@/components/AppHeader';
 import { getVoteResults } from '@/service/voteService';
 import { ResultsData, VoteResult } from '@/types/database';
 import { useError } from '@/hooks/useError';
+import { useTimeRemaining } from '@/hooks/useTimeRemaining';
 
 export default function ResultsPage() {
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const { error, handleError } = useError();
+  const { timeRemaining } = useTimeRemaining(resultsData?.room.expires_at);
 
   const router = useRouter();
   const params = useParams();
@@ -40,22 +42,6 @@ export default function ResultsPage() {
       setIsLoading(false);
     }
   }, [roomId, handleError]);
-
-  // 有効期限チェック
-  const getTimeRemaining = () => {
-    if (!resultsData?.room.expires_at) return null;
-
-    const now = new Date();
-    const expiresAt = new Date(resultsData.room.expires_at);
-    const diff = expiresAt.getTime() - now.getTime();
-
-    if (diff <= 0) return '期限切れ';
-
-    const minutes = Math.floor(diff / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    return `${minutes}分${seconds}秒`;
-  };
 
   // 得票率を計算
   const getVotePercentage = (voteCount: number) => {
@@ -140,8 +126,6 @@ export default function ResultsPage() {
       />
     );
   }
-
-  const timeRemaining = getTimeRemaining();
 
   return (
     <PageLayout maxWidth="4xl" padding={8}>

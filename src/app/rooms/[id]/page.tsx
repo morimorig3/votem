@@ -10,7 +10,7 @@ import {
   Badge,
   SimpleGrid,
 } from '@chakra-ui/react';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
@@ -21,14 +21,14 @@ import { joinRoom } from '@/service/participantService';
 import { RoomData, Participant } from '@/types/database';
 import { useError } from '@/hooks/useError';
 import { useSession } from '@/hooks/useSession';
+import { useTimeRemaining } from '@/hooks/useTimeRemaining';
 
 export default function RoomPage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [newParticipantName, setNewParticipantName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  
+
   const { error, setError, clearError, handleError } = useError();
   const {
     currentParticipant,
@@ -37,6 +37,7 @@ export default function RoomPage() {
     restoreSession,
     clearSession,
   } = useSession();
+  const { timeRemaining } = useTimeRemaining(roomData?.room.expires_at);
 
   const router = useRouter();
   const params = useParams();
@@ -120,6 +121,8 @@ export default function RoomPage() {
   };
 
   useEffect(() => {
+    console.log('effect');
+
     // セッション復元を試行
     const session = restoreSession(roomId);
     if (session) {
@@ -177,31 +180,15 @@ export default function RoomPage() {
     return () => {
       eventSource.close();
     };
-  }, [roomId, fetchRoomData, restoreSession, currentParticipant, clearSession, handleError, setCurrentParticipant]);
-
-  // 1秒ごとに現在時刻を更新（残り時間表示のため）
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timeInterval);
-  }, []);
-
-  // 残り時間を計算（1秒ごとに更新）
-  const timeRemaining = useMemo(() => {
-    if (!roomData?.room.expires_at) return null;
-
-    const expiresAt = new Date(roomData.room.expires_at);
-    const diff = expiresAt.getTime() - currentTime.getTime();
-
-    if (diff <= 0) return '期限切れ';
-
-    const minutes = Math.floor(diff / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    return `${minutes}分${seconds}秒`;
-  }, [roomData?.room.expires_at, currentTime]);
+  }, [
+    roomId,
+    fetchRoomData,
+    restoreSession,
+    currentParticipant,
+    clearSession,
+    handleError,
+    setCurrentParticipant,
+  ]);
 
   if (isLoading) {
     return <LoadingScreen message="ルーム情報を読み込み中..." />;

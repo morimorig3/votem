@@ -10,9 +10,9 @@ import { query } from '@/lib/database';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const roomId = params.id;
+  const { id: roomId } = await params;
 
   // SSEレスポンスヘッダーを設定
   const headers = {

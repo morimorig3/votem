@@ -21,6 +21,7 @@ import { submitVote } from '@/service/voteService';
 import { RoomData } from '@/types/database';
 import { useError } from '@/hooks/useError';
 import { useSession } from '@/hooks/useSession';
+import { useTimeRemaining } from '@/hooks/useTimeRemaining';
 
 export default function VotePage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -33,6 +34,7 @@ export default function VotePage() {
   
   const { error, setError, clearError, handleError } = useError();
   const { restoreSession } = useSession();
+  const { timeRemaining } = useTimeRemaining(roomData?.room.expires_at);
 
   const router = useRouter();
   const params = useParams();
@@ -82,22 +84,6 @@ export default function VotePage() {
     }
   };
 
-  // 有効期限チェック
-  const getTimeRemaining = () => {
-    if (!roomData?.room.expires_at) return null;
-
-    const now = new Date();
-    const expiresAt = new Date(roomData.room.expires_at);
-    const diff = expiresAt.getTime() - now.getTime();
-
-    if (diff <= 0) return '期限切れ';
-
-    const minutes = Math.floor(diff / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    return `${minutes}分${seconds}秒`;
-  };
-
   // 投票者の名前を取得
   const getVoterName = () => {
     const currentParticipantId =
@@ -128,7 +114,7 @@ export default function VotePage() {
     }
 
     fetchRoomData();
-  }, [roomId, participantId, router, restoreSession, setError]);
+  }, [roomId, participantId, router, restoreSession, setError, fetchRoomData]);
 
   if (isLoading) {
     return <LoadingScreen message="投票画面を読み込み中..." />;
@@ -192,8 +178,6 @@ export default function VotePage() {
       </PageLayout>
     );
   }
-
-  const timeRemaining = getTimeRemaining();
 
   return (
     <PageLayout maxWidth="4xl" padding={8}>

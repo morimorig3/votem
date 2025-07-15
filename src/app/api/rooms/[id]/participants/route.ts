@@ -13,10 +13,10 @@ import { Participant } from '@/types/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const roomId = params.id;
+    const { id: roomId } = await params;
     const { name } = await request.json();
 
     if (!roomId) {
