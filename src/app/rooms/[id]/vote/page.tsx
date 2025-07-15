@@ -104,7 +104,26 @@ export default function VotePage() {
     }
 
     fetchRoomData();
-  }, [roomId, restoreSession, setError, fetchRoomData]);
+
+    // Server-Sent Events接続を開始（ルーム用）
+    const roomEventSource = new EventSource(`/api/rooms/${roomId}/events`);
+
+    roomEventSource.addEventListener('room-update', event => {
+      try {
+        const data = JSON.parse(event.data);
+        // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
+        if (data.room.status === 'waiting') {
+          router.push(`/rooms/${roomId}`);
+        }
+      } catch (error) {
+        handleError(error, 'SSEルームデータパースエラー');
+      }
+    });
+
+    return () => {
+      roomEventSource.close();
+    };
+  }, [roomId, restoreSession, setError, fetchRoomData, router, handleError]);
 
   if (isLoading) {
     return <LoadingScreen message="投票画面を読み込み中..." />;
@@ -134,7 +153,6 @@ export default function VotePage() {
 
   return (
     <MainVoteScreen
-      roomId={roomId}
       roomData={roomData}
       selectedParticipant={selectedParticipant}
       voterName={getVoterName()}

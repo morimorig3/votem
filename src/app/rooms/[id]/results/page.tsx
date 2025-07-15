@@ -6,7 +6,6 @@ import {
   Heading,
   Text,
   Button,
-  SimpleGrid,
   Badge,
 } from '@chakra-ui/react';
 import { useState, useEffect, useCallback } from 'react';
@@ -16,16 +15,20 @@ import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
 import { getVoteResults } from '@/service/voteService';
+import { restartVoting } from '@/service/roomService';
 import { ResultsData, VoteResult } from '@/types/database';
 import { useError } from '@/hooks/useError';
 import { useTimeRemaining } from '@/hooks/useTimeRemaining';
+import { useSession } from '@/hooks/useSession';
 
 export default function ResultsPage() {
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRestarting, setIsRestarting] = useState(false);
   
-  const { error, handleError } = useError();
+  const { error, setError, clearError, handleError } = useError();
   const { timeRemaining } = useTimeRemaining(resultsData?.room.expires_at);
+  const { restoreSession } = useSession();
 
   const router = useRouter();
   const params = useParams();
@@ -64,15 +67,36 @@ export default function ResultsPage() {
     return rank;
   };
 
+  // 投票をやり直す
+  const handleRestartVoting = async () => {
+    const session = restoreSession(roomId);
+    if (!session?.participantId) {
+      setError('参加者情報が見つかりません');
+      return;
+    }
+
+    setIsRestarting(true);
+    clearError();
+
+    try {
+      await restartVoting(roomId, session.participantId);
+      // 投票やり直しが成功した場合、ルーム画面に遷移
+      router.push(`/rooms/${roomId}`);
+    } catch (error) {
+      handleError(error, '投票やり直しに失敗しました');
+      setIsRestarting(false);
+    }
+  };
+
 
   useEffect(() => {
     // 初回データ取得
     fetchResults();
 
-    // Server-Sent Events接続を開始
-    const eventSource = new EventSource(`/api/rooms/${roomId}/results/events`);
+    // Server-Sent Events接続を開始（結果用）
+    const resultsEventSource = new EventSource(`/api/rooms/${roomId}/results/events`);
 
-    eventSource.addEventListener('results-update', event => {
+    resultsEventSource.addEventListener('results-update', event => {
       try {
         const data = JSON.parse(event.data);
         setResultsData(data);
@@ -82,7 +106,7 @@ export default function ResultsPage() {
       }
     });
 
-    eventSource.addEventListener('error', event => {
+    resultsEventSource.addEventListener('error', event => {
       try {
         const data = JSON.parse((event as MessageEvent).data);
         handleError(new Error(data.error));
@@ -91,18 +115,43 @@ export default function ResultsPage() {
       }
     });
 
-    eventSource.onerror = () => {
+    resultsEventSource.onerror = () => {
       handleError(new Error('SSE結果接続が切断されました'));
       // フォールバック：通常のHTTPリクエストに切り替え
-      eventSource.close();
+      resultsEventSource.close();
       const fallbackInterval = setInterval(fetchResults, 10000);
       return () => clearInterval(fallbackInterval);
     };
 
+    // Server-Sent Events接続を開始（ルーム用）
+    const roomEventSource = new EventSource(`/api/rooms/${roomId}/events`);
+
+    roomEventSource.addEventListener('room-update', event => {
+      try {
+        const data = JSON.parse(event.data);
+        // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
+        if (data.room.status === 'waiting') {
+          router.push(`/rooms/${roomId}`);
+        }
+      } catch (error) {
+        handleError(error, 'SSEルームデータパースエラー');
+      }
+    });
+
+    roomEventSource.addEventListener('error', event => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data);
+        handleError(new Error(data.error));
+      } catch {
+        // ルーム接続のエラーは無視（結果接続が主）
+      }
+    });
+
     return () => {
-      eventSource.close();
+      resultsEventSource.close();
+      roomEventSource.close();
     };
-  }, [roomId, fetchResults]);
+  }, [roomId, fetchResults, handleError, router]);
 
   if (isLoading) {
     return <LoadingScreen message="結果を読み込み中..." />;
@@ -311,61 +360,21 @@ export default function ResultsPage() {
             )}
           </Stack>
 
-          {/* 当選者表示 */}
-          {resultsData.winners.length > 0 &&
-            resultsData.voteStatus.isComplete && (
-              <Box
-                bg="yellow.50"
-                p={6}
-                borderRadius="lg"
-                border="2px solid"
-                borderColor="yellow.300"
-              >
-                <Stack gap={4} textAlign="center">
-                  <Heading size="md" color="yellow.800">
-                    🎉 投票結果発表 🎉
-                  </Heading>
-                  <Stack gap={2}>
-                    {resultsData.winners.map((winner, index) => (
-                      <Text
-                        key={winner.id}
-                        fontSize="xl"
-                        fontWeight="bold"
-                        color="yellow.700"
-                      >
-                        {index > 0 && '・ '}
-                        {winner.name} さん ({winner.vote_count}票)
-                      </Text>
-                    ))}
-                  </Stack>
-                  {resultsData.winners.length > 1 && (
-                    <Text fontSize="sm" color="yellow.600">
-                      同点で{resultsData.winners.length}人が当選です
-                    </Text>
-                  )}
-                </Stack>
-              </Box>
-            )}
 
           {/* アクションボタン */}
           <Stack gap={4} align="center">
-            <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="100%">
+            {resultsData.voteStatus.isComplete && (
               <Button
-                variant="outline"
+                colorScheme="blue"
                 size="lg"
-                onClick={() => router.push(`/rooms/${roomId}`)}
+                onClick={handleRestartVoting}
+                loading={isRestarting}
+                loadingText="やり直し中..."
+                disabled={timeRemaining === '期限切れ'}
               >
-                ルームに戻る
+                投票をやり直す
               </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => router.push('/')}
-              >
-                新しいルーム作成
-              </Button>
-            </SimpleGrid>
+            )}
 
             {!resultsData.voteStatus.isComplete &&
               resultsData.room.status === 'voting' && (

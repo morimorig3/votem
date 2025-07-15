@@ -1,5 +1,4 @@
 import { Stack } from '@chakra-ui/react';
-import { useRouter } from 'next/navigation';
 import PageLayout from '@/components/PageLayout';
 import VoteHeader from './VoteHeader';
 import VoteInstructions from './VoteInstructions';
@@ -8,7 +7,6 @@ import VoteActions from './VoteActions';
 import { RoomData } from '@/types/database';
 
 interface MainVoteScreenProps {
-  roomId: string;
   roomData: RoomData;
   selectedParticipant: string | null;
   voterName: string;
@@ -21,7 +19,6 @@ interface MainVoteScreenProps {
 }
 
 export default function MainVoteScreen({
-  roomId,
   roomData,
   selectedParticipant,
   voterName,
@@ -32,11 +29,6 @@ export default function MainVoteScreen({
   onRandomSelection,
   onSelectParticipant,
 }: MainVoteScreenProps) {
-  const router = useRouter();
-
-  const handleBackToRoom = () => {
-    router.push(`/rooms/${roomId}`);
-  };
 
   return (
     <PageLayout maxWidth="4xl" padding={8}>
@@ -62,7 +54,6 @@ export default function MainVoteScreen({
           isTimeExpired={timeRemaining === '期限切れ'}
           onVote={onVote}
           onRandomSelection={onRandomSelection}
-          onBackToRoom={handleBackToRoom}
         />
       </Stack>
     </PageLayout>

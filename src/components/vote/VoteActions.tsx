@@ -9,7 +9,6 @@ interface VoteActionsProps {
   isTimeExpired: boolean;
   onVote: () => void;
   onRandomSelection: () => void;
-  onBackToRoom: () => void;
 }
 
 export default function VoteActions({
@@ -18,7 +17,6 @@ export default function VoteActions({
   isTimeExpired,
   onVote,
   onRandomSelection,
-  onBackToRoom,
 }: VoteActionsProps) {
   return (
     <Stack gap={6} align="center">
@@ -49,14 +47,6 @@ export default function VoteActions({
           ランダム選択
         </Button>
       </Stack>
-
-      <Button
-        variant="outline"
-        onClick={onBackToRoom}
-        size="sm"
-      >
-        ルームに戻る
-      </Button>
     </Stack>
   );
 }

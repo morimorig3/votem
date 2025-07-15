@@ -66,3 +66,30 @@ export const startVoting = async (
 
   return data;
 };
+
+interface RestartVotingResponse {
+  success: boolean;
+  message: string;
+  roomStatus: string;
+}
+
+export const restartVoting = async (
+  roomId: string,
+  participantId: string
+): Promise<RestartVotingResponse> => {
+  const response = await fetch(`/api/rooms/${roomId}/restart-voting`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ participantId }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || '投票やり直しに失敗しました');
+  }
+
+  return data;
+};
