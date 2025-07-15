@@ -17,11 +17,13 @@ import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
 import { getVoteResults } from '@/service/voteService';
 import { ResultsData, VoteResult } from '@/types/database';
+import { useError } from '@/hooks/useError';
 
 export default function ResultsPage() {
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  
+  const { error, handleError } = useError();
 
   const router = useRouter();
   const params = useParams();
@@ -33,13 +35,11 @@ export default function ResultsPage() {
       const data = await getVoteResults(roomId);
       setResultsData(data);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '結果の取得に失敗しました';
-      setError(errorMessage);
+      handleError(error, '結果の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
-  }, [roomId]);
+  }, [roomId, handleError]);
 
   // 有効期限チェック
   const getTimeRemaining = () => {
@@ -101,22 +101,21 @@ export default function ResultsPage() {
         setResultsData(data);
         setIsLoading(false);
       } catch (error) {
-        console.error('SSE結果データパースエラー:', error);
+        handleError(error, 'SSE結果データパースエラー');
       }
     });
 
     eventSource.addEventListener('error', event => {
       try {
         const data = JSON.parse((event as MessageEvent).data);
-        setError(data.error);
+        handleError(new Error(data.error));
       } catch {
-        console.error('SSE結果接続エラー');
-        setError('リアルタイム更新の接続に失敗しました');
+        handleError(new Error('リアルタイム更新の接続に失敗しました'));
       }
     });
 
     eventSource.onerror = () => {
-      console.error('SSE結果接続が切断されました');
+      handleError(new Error('SSE結果接続が切断されました'));
       // フォールバック：通常のHTTPリクエストに切り替え
       eventSource.close();
       const fallbackInterval = setInterval(fetchResults, 10000);

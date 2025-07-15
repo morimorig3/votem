@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createRoom } from '@/service/roomService';
 import CreateRoomScreen from '@/components/CreateRoomScreen';
 import RoomCreatedScreen from '@/components/RoomCreatedScreen';
+import { useError } from '@/hooks/useError';
 
 export default function CreateRoom() {
   const [title, setTitle] = useState('');
@@ -14,8 +15,8 @@ export default function CreateRoom() {
     url: string;
     title: string;
   } | null>(null);
-  const [error, setError] = useState('');
-
+  
+  const { error, setError, clearError, handleError } = useError();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +28,7 @@ export default function CreateRoom() {
     }
 
     setIsLoading(true);
-    setError('');
+    clearError();
 
     try {
       const data = await createRoom(title.trim());
@@ -38,9 +39,7 @@ export default function CreateRoom() {
         title: data.room.title,
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'ルームの作成に失敗しました';
-      setError(errorMessage);
+      handleError(error, 'ルームの作成に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +65,7 @@ export default function CreateRoom() {
   const createNewRoom = () => {
     setCreatedRoom(null);
     setTitle('');
-    setError('');
+    clearError();
   };
 
   return createdRoom ? (

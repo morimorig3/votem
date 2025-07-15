@@ -19,6 +19,7 @@ import AppHeader from '@/components/AppHeader';
 import { getRoomData } from '@/service/roomService';
 import { submitVote } from '@/service/voteService';
 import { RoomData } from '@/types/database';
+import { useError } from '@/hooks/useError';
 
 export default function VotePage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -27,8 +28,9 @@ export default function VotePage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
-  const [error, setError] = useState('');
   const [hasVoted, setHasVoted] = useState(false);
+  
+  const { error, setError, clearError, handleError } = useError();
 
   const router = useRouter();
   const params = useParams();
@@ -53,7 +55,7 @@ export default function VotePage() {
         }
       }
     } catch (error) {
-      console.error('セッション復元エラー:', error);
+      handleError(error, 'セッション復元エラー');
       localStorage.removeItem(getStorageKey());
     }
     return null;
@@ -65,11 +67,7 @@ export default function VotePage() {
       const data = await getRoomData(roomId);
       setRoomData(data);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'ルーム情報の取得に失敗しました';
-      setError(errorMessage);
+      handleError(error, 'ルーム情報の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +83,7 @@ export default function VotePage() {
     }
 
     setIsVoting(true);
-    setError('');
+    clearError();
 
     try {
       await submitVote(roomId, currentParticipantId, selectedParticipant);
@@ -98,9 +96,7 @@ export default function VotePage() {
         router.push(`/rooms/${roomId}/results`);
       }, 2000);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '投票に失敗しました';
-      setError(errorMessage);
+      handleError(error, '投票に失敗しました');
     } finally {
       setIsVoting(false);
     }

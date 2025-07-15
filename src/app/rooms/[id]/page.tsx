@@ -19,17 +19,19 @@ import AppHeader from '@/components/AppHeader';
 import { getRoomData } from '@/service/roomService';
 import { joinRoom } from '@/service/participantService';
 import { RoomData, Participant } from '@/types/database';
+import { useError } from '@/hooks/useError';
 
 export default function RoomPage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [newParticipantName, setNewParticipantName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [error, setError] = useState('');
   const [currentParticipant, setCurrentParticipant] = useState<string | null>(
     null
   );
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  const { error, setError, clearError, handleError } = useError();
 
   const router = useRouter();
   const params = useParams();
@@ -65,7 +67,7 @@ export default function RoomPage() {
         }
       }
     } catch (error) {
-      console.error('セッション復元エラー:', error);
+      handleError(error, 'セッション復元エラー');
       localStorage.removeItem(getStorageKey());
     }
     return null;
@@ -94,11 +96,7 @@ export default function RoomPage() {
         }
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'ルーム情報の取得に失敗しました';
-      setError(errorMessage);
+      handleError(error, 'ルーム情報の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +112,7 @@ export default function RoomPage() {
     }
 
     setIsJoining(true);
-    setError('');
+    clearError();
 
     try {
       const data = await joinRoom(roomId, newParticipantName.trim());
@@ -131,9 +129,7 @@ export default function RoomPage() {
 
       alert('ルームに参加しました！');
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '参加に失敗しました';
-      setError(errorMessage);
+      handleError(error, '参加に失敗しました');
     } finally {
       setIsJoining(false);
     }
@@ -189,26 +185,25 @@ export default function RoomPage() {
           }
         }
       } catch (error) {
-        console.error('SSEデータパースエラー:', error);
+        handleError(error, 'SSEデータパースエラー');
       }
     });
 
     eventSource.addEventListener('error', event => {
       try {
         const data = JSON.parse((event as MessageEvent).data);
-        setError(data.error);
+        handleError(new Error(data.error));
       } catch {
-        console.error('SSE接続エラー');
-        setError('リアルタイム更新の接続に失敗しました');
+        handleError(new Error('リアルタイム更新の接続に失敗しました'));
       }
     });
 
     eventSource.addEventListener('expired', () => {
-      setError('ルームの有効期限が切れました');
+      handleError(new Error('ルームの有効期限が切れました'));
     });
 
     eventSource.onerror = () => {
-      console.error('SSE接続が切断されました');
+      handleError(new Error('SSE接続が切断されました'));
       // フォールバック：通常のHTTPリクエストに切り替え
       eventSource.close();
       const fallbackInterval = setInterval(fetchRoomData, 10000);
@@ -240,8 +235,6 @@ export default function RoomPage() {
 
     const minutes = Math.floor(diff / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    console.log(`${minutes}分${seconds}秒`);
 
     return `${minutes}分${seconds}秒`;
   }, [roomData?.room.expires_at, currentTime]);
