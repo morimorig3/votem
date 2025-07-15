@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '@/lib/database';
+import { votemEvents } from '@/lib/eventEmitter';
 
 export async function POST(
   request: NextRequest,
@@ -105,11 +106,26 @@ export async function POST(
     );
 
     // ルームステータスを投票中に更新（初回投票時）
+    let statusChanged = false;
     if (room.status === 'waiting') {
       await query('UPDATE rooms SET status = $1 WHERE id = $2', [
         'voting',
         roomId,
       ]);
+      statusChanged = true;
+    }
+
+    // 投票イベントを発火
+    votemEvents.emitVoteCast(roomId, {
+      voteId,
+      voterId: participantId,
+      candidateId: selectedParticipantId,
+      createdAt: now,
+    });
+
+    // ステータス変更イベントを発火
+    if (statusChanged) {
+      votemEvents.emitRoomStatusChanged(roomId, 'voting');
     }
 
     return NextResponse.json({

@@ -10,7 +10,7 @@ import {
   Spinner,
   Badge,
 } from '@chakra-ui/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
@@ -31,7 +31,7 @@ export default function VotePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  
+
   const { error, setError, clearError, handleError } = useError();
   const { restoreSession } = useSession();
   const { timeRemaining } = useTimeRemaining(roomData?.room.expires_at);
@@ -44,7 +44,7 @@ export default function VotePage() {
   const participantId = searchParams.get('participantId');
 
   // ルーム情報を取得
-  const fetchRoomData = async () => {
+  const fetchRoomData = useCallback(async () => {
     try {
       const data = await getRoomData(roomId);
       setRoomData(data);
@@ -53,7 +53,7 @@ export default function VotePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [roomId, handleError, setRoomData]);
 
   // 投票実行
   const handleVote = async () => {

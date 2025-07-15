@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '@/lib/database';
 import { Participant } from '@/types/database';
+import { votemEvents } from '@/lib/eventEmitter';
 
 export async function POST(
   request: NextRequest,
@@ -83,6 +84,12 @@ export async function POST(
     );
 
     const participant: Participant = result.rows[0];
+
+    // 参加者追加イベントを発火
+    votemEvents.emitParticipantJoined(roomId, {
+      participant,
+      room: { id: roomId, status: room.status },
+    });
 
     return NextResponse.json({ participant });
   } catch (error) {
