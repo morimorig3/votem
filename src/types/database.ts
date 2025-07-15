@@ -27,6 +27,7 @@ export interface Vote {
 export interface RoomData {
   room: Room;
   participants: Participant[];
+  votedParticipantIds?: string[];
 }
 
 export interface VoteResult {

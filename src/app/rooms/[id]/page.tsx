@@ -16,7 +16,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import PageLayout from '@/components/PageLayout';
 import ErrorScreen from '@/components/ErrorScreen';
 import AppHeader from '@/components/AppHeader';
-import { getRoomData } from '@/service/roomService';
+import { getRoomData, startVoting } from '@/service/roomService';
 import { joinRoom } from '@/service/participantService';
 import { RoomData, Participant } from '@/types/database';
 import { useError } from '@/hooks/useError';
@@ -28,6 +28,7 @@ export default function RoomPage() {
   const [newParticipantName, setNewParticipantName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
+  const [isStartingVoting, setIsStartingVoting] = useState(false);
 
   const { error, setError, clearError, handleError } = useError();
   const {
@@ -99,23 +100,47 @@ export default function RoomPage() {
   };
 
   // 投票開始
-  const handleStartVoting = () => {
+  const handleStartVoting = async () => {
     if (!currentParticipant) {
-      alert('参加者として登録してから投票を開始してください');
+      setError('参加者として登録してから投票を開始してください');
       return;
     }
 
     if (!roomData?.participants || roomData.participants.length < 2) {
-      alert('投票には最低2人の参加者が必要です');
+      setError('投票には最低2人の参加者が必要です');
       return;
     }
 
+    setIsStartingVoting(true);
+    clearError();
+
+    try {
+      await startVoting(roomId, currentParticipant);
+      // 投票開始が成功した場合、SSEで自動的に投票画面に遷移される
+    } catch (error) {
+      handleError(error, '投票開始に失敗しました');
+      setIsStartingVoting(false);
+    }
+  };
+
+  // 投票に参加する（投票が既に開始されている場合）
+  const handleJoinVoting = () => {
+    if (!currentParticipant) {
+      setError('参加者として登録してから投票に参加してください');
+      return;
+    }
     router.push(`/rooms/${roomId}/vote?participantId=${currentParticipant}`);
   };
 
   // 結果確認
   const handleViewResults = () => {
     router.push(`/rooms/${roomId}/results`);
+  };
+
+  // 現在の参加者が投票済みかどうかを判定
+  const isCurrentParticipantVoted = () => {
+    if (!currentParticipant || !roomData?.votedParticipantIds) return false;
+    return roomData.votedParticipantIds.includes(currentParticipant);
   };
 
   useEffect(() => {
@@ -136,6 +161,7 @@ export default function RoomPage() {
     eventSource.addEventListener('room-update', event => {
       try {
         const data = JSON.parse(event.data);
+        const previousStatus = roomData?.room.status;
         setRoomData(data);
         setIsLoading(false);
 
@@ -148,6 +174,15 @@ export default function RoomPage() {
             clearSession(roomId);
             setCurrentParticipant(null);
           }
+        }
+
+        // ルームステータスが'voting'に変更された場合、自動で投票画面に遷移
+        if (
+          previousStatus === 'waiting' &&
+          data.room.status === 'voting' &&
+          currentParticipant
+        ) {
+          router.push(`/rooms/${roomId}/vote?participantId=${currentParticipant}`);
         }
       } catch (error) {
         handleError(error, 'SSEデータパースエラー');
@@ -186,6 +221,8 @@ export default function RoomPage() {
     clearSession,
     handleError,
     setCurrentParticipant,
+    roomData?.room.status,
+    router,
   ]);
 
   if (isLoading) {
@@ -285,11 +322,18 @@ export default function RoomPage() {
                         <Text fontWeight="medium">
                           {index + 1}. {participant.name}
                         </Text>
-                        {currentParticipant === participant.id && (
-                          <Badge colorScheme="blue" size="sm">
-                            あなた
-                          </Badge>
-                        )}
+                        <Stack direction="row" gap={2}>
+                          {currentParticipant === participant.id && (
+                            <Badge colorScheme="blue" size="sm">
+                              あなた
+                            </Badge>
+                          )}
+                          {roomData.votedParticipantIds?.includes(participant.id) && (
+                            <Badge colorScheme="green" size="sm">
+                              投票済み
+                            </Badge>
+                          )}
+                        </Stack>
                       </Stack>
                     </Box>
                   ))}
@@ -350,19 +394,32 @@ export default function RoomPage() {
                         w="100%"
                         onClick={handleStartVoting}
                         disabled={roomData.participants.length < 2}
+                        loading={isStartingVoting}
+                        loadingText="投票を開始中..."
                       >
                         投票を開始する
                       </Button>
                     )}
 
-                    {roomData.room.status === 'voting' && (
+                    {roomData.room.status === 'voting' && !isCurrentParticipantVoted() && (
                       <Button
                         colorScheme="yellow"
                         size="lg"
                         w="100%"
-                        onClick={handleStartVoting}
+                        onClick={handleJoinVoting}
                       >
                         投票に参加する
+                      </Button>
+                    )}
+
+                    {roomData.room.status === 'voting' && isCurrentParticipantVoted() && (
+                      <Button
+                        colorScheme="blue"
+                        size="lg"
+                        w="100%"
+                        onClick={handleViewResults}
+                      >
+                        投票結果を確認する
                       </Button>
                     )}
 

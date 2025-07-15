@@ -53,9 +53,20 @@ export async function GET(
 
     const participants: Participant[] = participantsResult.rows;
 
+    // 投票済み参加者のIDリストを取得
+    const votedParticipantsResult = await query(
+      'SELECT voter_id FROM votes WHERE room_id = $1',
+      [roomId]
+    );
+
+    const votedParticipantIds: string[] = votedParticipantsResult.rows.map(
+      (row: { voter_id: string }) => row.voter_id
+    );
+
     return NextResponse.json({
       room,
       participants,
+      votedParticipantIds,
     });
   } catch (error) {
     console.error('ルーム取得エラー:', error);
