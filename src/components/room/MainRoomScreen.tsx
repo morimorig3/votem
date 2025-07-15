@@ -1,8 +1,4 @@
-import {
-  Stack,
-  SimpleGrid,
-  Box,
-} from '@chakra-ui/react';
+import { Stack, SimpleGrid, Box } from '@chakra-ui/react';
 import { FormEvent } from 'react';
 import PageLayout from '@/components/PageLayout';
 import RoomHeader from './RoomHeader';
@@ -53,12 +49,6 @@ export default function MainRoomScreen({
         />
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={8}>
-          <ParticipantsList
-            participants={roomData.participants}
-            currentParticipant={currentParticipant}
-            votedParticipantIds={roomData.votedParticipantIds || []}
-          />
-
           <Box bg="white" p={6} borderRadius="lg" shadow="sm">
             <Stack gap={6}>
               {!currentParticipant ? (
@@ -85,6 +75,12 @@ export default function MainRoomScreen({
               <JoinInstructions />
             </Stack>
           </Box>
+
+          <ParticipantsList
+            participants={roomData.participants}
+            currentParticipant={currentParticipant}
+            votedParticipantIds={roomData.votedParticipantIds || []}
+          />
         </SimpleGrid>
       </Stack>
     </PageLayout>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Stack, Text, Button, Heading } from '@chakra-ui/react';
+import { Box, Stack, Text, Button, Heading, HStack } from '@chakra-ui/react';
 import PageLayout from './PageLayout';
 
 interface CreatedRoom {
@@ -53,14 +53,14 @@ export default function RoomCreatedScreen({
               </Box>
             </Stack>
 
-            <Stack direction={{ base: 'column', md: 'row' }} gap={4} w="100%">
-              <Button colorScheme="blue" onClick={onCopyToClipboard} flex="1">
+            <HStack gap={4} w="100%">
+              <Button onClick={onCopyToClipboard} flex="1">
                 URLをコピー
               </Button>
-              <Button colorScheme="green" onClick={onGoToRoom} flex="1">
+              <Button onClick={onGoToRoom} flex="1">
                 ルームに入る
               </Button>
-            </Stack>
+            </HStack>
 
             <Box
               p={4}

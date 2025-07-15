@@ -1,7 +1,6 @@
 import { Stack } from '@chakra-ui/react';
 import PageLayout from '@/components/PageLayout';
 import VoteHeader from './VoteHeader';
-import VoteInstructions from './VoteInstructions';
 import ParticipantSelector from './ParticipantSelector';
 import VoteActions from './VoteActions';
 import { RoomData } from '@/types/database';
@@ -49,7 +48,6 @@ export default function MainVoteScreen({
           onVote={onVote}
           onRandomSelection={onRandomSelection}
         />
-        <VoteInstructions />
       </Stack>
     </PageLayout>
   );
