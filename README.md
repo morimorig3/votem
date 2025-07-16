@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 投票アプリ
 
-## Getting Started
+チームの決定を簡単に。匿名投票でスムーズな意思決定を支援するWebアプリケーションです。
 
-First, run the development server:
+## 機能
+
+- **投票ルーム作成**: チームリーダーが投票ルームを作成
+- **匿名投票**: 参加者が匿名で投票を実施
+- **リアルタイム更新**: 投票状況と結果をリアルタイムで表示
+- **投票やり直し**: 全員投票完了後に投票を再実行可能
+- **参加者追加**: 投票中でも新しい参加者を追加可能
+
+## 技術スタック
+
+- **フロントエンド**: Next.js 15 + TypeScript + Chakra UI v3
+- **バックエンド**: Next.js API Routes
+- **データベース**: Neon PostgreSQL
+- **リアルタイム通信**: Server-Sent Events (SSE)
+
+## 始め方
+
+### 前提条件
+
+- Docker Desktop
+- Node.js 18以上
+- PostgreSQL
+
+### 開発環境セットアップ
+
+1. **リポジトリのクローン**
+   ```bash
+   git clone <repository-url>
+   cd votem
+   ```
+
+2. **Docker起動**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **依存関係のインストール**
+   ```bash
+   npm install
+   ```
+
+4. **環境変数の設定**
+   ```bash
+   cp .env.local
+   ```
+   
+   `.env.local`を編集して以下を設定：
+   ```env
+   DATABASE_URL=postgresql://user:password@localhost:5432/votem
+   ```
+
+5. **データベース初期化**
+   ```bash
+   npm run db:init
+   ```
+
+6. **開発サーバー起動**
+   ```bash
+   npm run dev
+   ```
+
+7. **ブラウザでアクセス**
+   
+   [http://localhost:3000](http://localhost:3000) を開く
+
+### 使用可能なコマンド
 
 ```bash
+# 開発サーバー起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# ビルド
+npm run build
+
+# 本番サーバー起動
+npm start
+
+# リント
+npm run lint
+
+# データベースクリーンアップ
+npm run db:clean
+
+# 型チェック
+npm run type-check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## プロジェクト構造
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   │   └── rooms/         # ルーム関連API
+│   ├── create/            # ルーム作成ページ
+│   └── rooms/[id]/        # ルーム関連ページ
+├── components/            # React コンポーネント
+│   ├── room/              # ルーム画面用
+│   ├── vote/              # 投票画面用
+│   └── results/           # 結果画面用
+├── lib/                   # ユーティリティ
+│   ├── database.ts        # DB接続
+│   ├── vercelSSE.ts       # SSE管理
+│   └── vercelEvents.ts    # イベント管理
+├── hooks/                 # カスタムフック
+├── service/               # API呼び出し
+└── types/                 # TypeScript型定義
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## データベーススキーマ
 
-## Learn More
+### rooms
+- `id`: UUID (Primary Key)
+- `title`: 投票タイトル
+- `created_at`: 作成日時
+- `expires_at`: 有効期限 (作成から30分後)
+- `status`: ステータス ('waiting' | 'voting' | 'completed')
 
-To learn more about Next.js, take a look at the following resources:
+### participants
+- `id`: UUID (Primary Key)
+- `room_id`: ルームID (Foreign Key)
+- `name`: 参加者名
+- `joined_at`: 参加日時
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### votes
+- `id`: UUID (Primary Key)
+- `room_id`: ルームID (Foreign Key)
+- `voter_id`: 投票者ID (Foreign Key)
+- `candidate_id`: 候補者ID (Foreign Key)
+- `created_at`: 投票日時
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ライセンス
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License
