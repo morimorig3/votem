@@ -158,8 +158,6 @@ export default function RoomPage() {
           filter: `id=eq.${roomId}`,
         },
         (payload: { new?: { status?: string } }) => {
-          console.log('Room update:', payload);
-
           // ルームステータスが'voting'に変更された場合、自動で投票画面に遷移
           if (payload.new?.status === 'voting' && currentParticipant) {
             router.push(`/rooms/${roomId}/vote`);
@@ -177,7 +175,6 @@ export default function RoomPage() {
           filter: `room_id=eq.${roomId}`,
         },
         (payload: unknown) => {
-          console.log('Participant update:', payload);
           fetchRoomData();
         }
       )
@@ -190,19 +187,12 @@ export default function RoomPage() {
           filter: `room_id=eq.${roomId}`,
         },
         (payload: unknown) => {
-          console.log('Vote update:', payload);
           fetchRoomData();
         }
       )
-      .subscribe((status: string) => {
-        console.log('Subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('リアルタイム購読が開始されました');
-        }
-      });
+      .subscribe((status: string) => {});
 
     return () => {
-      console.log('Cleaning up subscription');
       supabase.removeChannel(roomSubscription);
     };
   }, [

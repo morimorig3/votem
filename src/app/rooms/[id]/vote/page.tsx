@@ -142,7 +142,6 @@ export default function VotePage() {
           filter: `id=eq.${roomId}`,
         },
         (payload: { new?: { status?: string } }) => {
-          console.log('Vote page room update:', payload);
           fetchRoomData();
           // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
           if (payload.new?.status === 'waiting') {
@@ -159,7 +158,6 @@ export default function VotePage() {
           filter: `room_id=eq.${roomId}`,
         },
         (payload: unknown) => {
-          console.log('Vote page votes update:', payload);
           fetchRoomData();
         }
       )

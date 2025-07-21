@@ -80,7 +80,6 @@ export default function ResultsPage() {
           filter: `room_id=eq.${roomId}`,
         },
         (payload: unknown) => {
-          console.log('Results vote update:', payload);
           fetchResults();
         }
       )
@@ -93,7 +92,6 @@ export default function ResultsPage() {
           filter: `id=eq.${roomId}`,
         },
         (payload: { new?: { status?: string } }) => {
-          console.log('Results room update:', payload);
           // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
           if (payload.new?.status === 'waiting') {
             router.push(`/rooms/${roomId}`);

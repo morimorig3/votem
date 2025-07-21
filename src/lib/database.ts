@@ -24,7 +24,6 @@ export async function testConnection() {
       return false;
     }
 
-    console.log('Database connected successfully');
     return true;
   } catch (error) {
     console.error('Database connection failed:', error);
@@ -45,7 +44,6 @@ export async function cleanupExpiredRooms() {
       return 0;
     }
 
-    console.log(`Cleaned up ${count || 0} expired rooms`);
     return count || 0;
   } catch (error) {
     console.error('Cleanup failed:', error);
