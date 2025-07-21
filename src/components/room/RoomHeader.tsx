@@ -1,9 +1,4 @@
-import {
-  Stack,
-  Heading,
-  Text,
-  Badge,
-} from '@chakra-ui/react';
+import { Stack, Heading, Text, Badge } from '@chakra-ui/react';
 import AppHeader from '@/components/AppHeader';
 
 interface RoomHeaderProps {

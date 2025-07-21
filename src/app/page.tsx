@@ -4,6 +4,7 @@ import { Stack, Text, Button, Box, Heading } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import PageLayout from '@/components/PageLayout';
 import AppHeader from '@/components/AppHeader';
+import ClientOnly from '@/components/ClientOnly';
 
 export default function Home() {
   const router = useRouter();
@@ -13,8 +14,9 @@ export default function Home() {
   };
 
   return (
-    <PageLayout maxWidth="4xl" padding={20}>
-      <Stack gap={12}>
+    <ClientOnly fallback={<div>Loading...</div>}>
+      <PageLayout maxWidth="4xl" padding={20}>
+        <Stack gap={12}>
           {/* ヘッダー */}
           <Stack gap={6} textAlign="center">
             <AppHeader size="2xl" />
@@ -47,7 +49,8 @@ export default function Home() {
               </Stack>
             </Stack>
           </Box>
-      </Stack>
-    </PageLayout>
+        </Stack>
+      </PageLayout>
+    </ClientOnly>
   );
 }

@@ -1,9 +1,4 @@
-import {
-  Stack,
-  Heading,
-  Text,
-  Button,
-} from '@chakra-ui/react';
+import { Stack, Heading, Text, Button } from '@chakra-ui/react';
 
 interface VotingActionsProps {
   roomStatus: 'waiting' | 'voting' | 'completed';
@@ -54,33 +49,22 @@ export default function VotingActions({
         )}
 
         {roomStatus === 'voting' && isCurrentParticipantVoted && (
-          <Button
-            colorScheme="blue"
-            size="lg"
-            w="100%"
-            onClick={onViewResults}
-          >
+          <Button colorScheme="blue" size="lg" w="100%" onClick={onViewResults}>
             投票結果を確認する
           </Button>
         )}
 
         {roomStatus === 'completed' && (
-          <Button
-            colorScheme="blue"
-            size="lg"
-            w="100%"
-            onClick={onViewResults}
-          >
+          <Button colorScheme="blue" size="lg" w="100%" onClick={onViewResults}>
             結果を確認する
           </Button>
         )}
 
-        {participantCount < 2 &&
-          roomStatus === 'waiting' && (
-            <Text color="gray.500" fontSize="sm" textAlign="center">
-              投票には最低2人の参加者が必要です
-            </Text>
-          )}
+        {participantCount < 2 && roomStatus === 'waiting' && (
+          <Text color="gray.500" fontSize="sm" textAlign="center">
+            投票には最低2人の参加者が必要です
+          </Text>
+        )}
       </Stack>
     </>
   );

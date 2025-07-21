@@ -1,10 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  Spinner,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, Spinner } from '@chakra-ui/react';
 import PageLayout from '@/components/PageLayout';
 import AppHeader from '@/components/AppHeader';
 

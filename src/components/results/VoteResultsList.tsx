@@ -1,10 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  Badge,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, Badge } from '@chakra-ui/react';
 import { VoteResult } from '@/types/database';
 
 interface VoteResultsListProps {
@@ -42,13 +36,7 @@ export default function VoteResultsList({
       </Heading>
 
       {results.length === 0 ? (
-        <Box
-          bg="white"
-          p={8}
-          borderRadius="lg"
-          shadow="sm"
-          textAlign="center"
-        >
+        <Box bg="white" p={8} borderRadius="lg" shadow="sm" textAlign="center">
           <Text color="gray.500">まだ投票がありません</Text>
         </Box>
       ) : (
@@ -84,18 +72,9 @@ export default function VoteResultsList({
                 )}
 
                 <Stack gap={3}>
-                  <Stack
-                    direction="row"
-                    justify="space-between"
-                    align="center"
-                  >
+                  <Stack direction="row" justify="space-between" align="center">
                     <Stack direction="row" align="center" gap={3}>
-                      <Badge
-                        colorScheme="gray"
-                        fontSize="md"
-                        px={2}
-                        py={1}
-                      >
+                      <Badge colorScheme="gray" fontSize="md" px={2} py={1}>
                         {rank}位
                       </Badge>
                       <Text fontSize="xl" fontWeight="bold">
@@ -104,11 +83,7 @@ export default function VoteResultsList({
                     </Stack>
 
                     <Stack textAlign="right" gap={1}>
-                      <Text
-                        fontSize="2xl"
-                        fontWeight="bold"
-                        color="blue.600"
-                      >
+                      <Text fontSize="2xl" fontWeight="bold" color="blue.600">
                         {result.vote_count}票
                       </Text>
                       <Text fontSize="sm" color="gray.600">
@@ -118,12 +93,7 @@ export default function VoteResultsList({
                   </Stack>
 
                   {votedCount > 0 && (
-                    <Box
-                      w="100%"
-                      bg="gray.200"
-                      borderRadius="md"
-                      height="6px"
-                    >
+                    <Box w="100%" bg="gray.200" borderRadius="md" height="6px">
                       <Box
                         bg={isWinner ? 'yellow.400' : 'blue.500'}
                         height="100%"

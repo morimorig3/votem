@@ -1,8 +1,4 @@
-import {
-  Stack,
-  Button,
-  Text,
-} from '@chakra-ui/react';
+import { Stack, Button, Text } from '@chakra-ui/react';
 
 interface ResultsActionsProps {
   isComplete: boolean;

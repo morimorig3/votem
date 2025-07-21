@@ -10,7 +10,11 @@ interface SessionData {
 export interface UseSessionReturn {
   currentParticipant: string | null;
   setCurrentParticipant: (participantId: string | null) => void;
-  saveSession: (participantId: string, participantName: string, roomId: string) => void;
+  saveSession: (
+    participantId: string,
+    participantName: string,
+    roomId: string
+  ) => void;
   restoreSession: (roomId: string) => SessionData | null;
   clearSession: (roomId: string) => void;
   getStorageKey: (roomId: string) => string;

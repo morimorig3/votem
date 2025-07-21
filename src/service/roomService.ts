@@ -1,8 +1,5 @@
 import { Room, RoomData } from '@/types/database';
-
-interface CreateRoomRequest {
-  title: string;
-}
+import { supabase } from '@/lib/database';
 
 interface CreateRoomResponse {
   room: Room;
@@ -12,32 +9,74 @@ interface CreateRoomResponse {
 export const createRoom = async (
   title: string
 ): Promise<CreateRoomResponse> => {
-  const response = await fetch('/api/rooms', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ title: title.trim() } as CreateRoomRequest),
-  });
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 30);
 
-  const data = await response.json();
+  const { data, error } = await supabase
+    .from('rooms')
+    .insert({
+      title: title.trim(),
+      expires_at: expiresAt.toISOString(),
+      status: 'waiting',
+    })
+    .select()
+    .single();
 
-  if (!response.ok) {
-    throw new Error(data.error || 'ルームの作成に失敗しました');
+  if (error) {
+    throw new Error(error.message || 'ルームの作成に失敗しました');
   }
 
-  return data;
+  const baseUrl =
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const url = `${baseUrl}/rooms/${data.id}`;
+
+  return {
+    room: data,
+    url,
+  };
 };
 
 export const getRoomData = async (roomId: string): Promise<RoomData> => {
-  const response = await fetch(`/api/rooms/${roomId}`);
-  const data = await response.json();
+  const [roomResult, participantsResult, votedParticipantsResult] =
+    await Promise.all([
+      supabase.from('rooms').select('*').eq('id', roomId).single(),
 
-  if (!response.ok) {
-    throw new Error(data.error || 'ルーム情報の取得に失敗しました');
+      supabase
+        .from('participants')
+        .select('*')
+        .eq('room_id', roomId)
+        .order('joined_at', { ascending: true }),
+
+      supabase.from('votes').select('voter_id').eq('room_id', roomId),
+    ]);
+
+  if (roomResult.error) {
+    throw new Error(
+      roomResult.error.message || 'ルーム情報の取得に失敗しました'
+    );
   }
 
-  return data;
+  if (participantsResult.error) {
+    throw new Error(
+      participantsResult.error.message || '参加者情報の取得に失敗しました'
+    );
+  }
+
+  if (votedParticipantsResult.error) {
+    throw new Error(
+      votedParticipantsResult.error.message || '投票状況の取得に失敗しました'
+    );
+  }
+
+  return {
+    room: roomResult.data,
+    participants: participantsResult.data,
+    votedParticipantIds: votedParticipantsResult.data.map(
+      vote => vote.voter_id
+    ),
+  };
 };
 
 interface StartVotingResponse {
@@ -50,48 +89,34 @@ export const startVoting = async (
   roomId: string,
   participantId: string
 ): Promise<StartVotingResponse> => {
-  const response = await fetch(`/api/rooms/${roomId}/start-voting`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ participantId }),
-  });
+  // 参加者が存在するかチェック
+  const { data: participant, error: participantError } = await supabase
+    .from('participants')
+    .select('id')
+    .eq('id', participantId)
+    .eq('room_id', roomId)
+    .single();
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || '投票開始に失敗しました');
+  if (participantError || !participant) {
+    throw new Error('参加者が見つかりません');
   }
 
-  return data;
-};
+  // ルームのステータスを'voting'に更新
+  const { error } = await supabase
+    .from('rooms')
+    .update({ status: 'voting' })
+    .eq('id', roomId)
+    .eq('status', 'waiting');
 
-interface RestartVotingResponse {
-  success: boolean;
-  message: string;
-  roomStatus: string;
-}
-
-export const restartVoting = async (
-  roomId: string,
-  participantId: string
-): Promise<RestartVotingResponse> => {
-  const response = await fetch(`/api/rooms/${roomId}/restart-voting`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ participantId }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || '投票やり直しに失敗しました');
+  if (error) {
+    throw new Error(error.message || '投票開始に失敗しました');
   }
 
-  return data;
+  return {
+    success: true,
+    message: '投票が開始されました',
+    roomStatus: 'voting',
+  };
 };
 
 interface CancelVotingResponse {
@@ -102,19 +127,37 @@ export const cancelVoting = async (
   roomId: string,
   participantId: string
 ): Promise<CancelVotingResponse> => {
-  const response = await fetch(`/api/rooms/${roomId}/cancel-voting`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ participantId }),
-  });
+  // 参加者が存在するかチェック
+  const { data: participant, error: participantError } = await supabase
+    .from('participants')
+    .select('id')
+    .eq('id', participantId)
+    .eq('room_id', roomId)
+    .single();
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || '投票キャンセルに失敗しました');
+  if (participantError || !participant) {
+    throw new Error('参加者が見つかりません');
   }
 
-  return data;
+  // 投票を削除してルームのステータスを'waiting'に戻す
+  const [deleteResult, updateResult] = await Promise.all([
+    supabase.from('votes').delete().eq('room_id', roomId),
+    supabase.from('rooms').update({ status: 'waiting' }).eq('id', roomId),
+  ]);
+
+  if (deleteResult.error) {
+    throw new Error(
+      deleteResult.error.message || '投票のキャンセルに失敗しました'
+    );
+  }
+
+  if (updateResult.error) {
+    throw new Error(
+      updateResult.error.message || 'ルームステータスの更新に失敗しました'
+    );
+  }
+
+  return {
+    success: true,
+  };
 };

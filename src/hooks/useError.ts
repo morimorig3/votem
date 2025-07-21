@@ -18,7 +18,7 @@ export function useError(initialError = ''): UseErrorReturn {
     (error: unknown, defaultMessage = 'エラーが発生しました') => {
       // エラーをコンソールに出力
       console.error('Error occurred:', error);
-      
+
       const errorMessage =
         error instanceof Error ? error.message : defaultMessage;
       setError(errorMessage);

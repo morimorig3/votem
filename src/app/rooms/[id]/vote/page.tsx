@@ -13,6 +13,7 @@ import { RoomData } from '@/types/database';
 import { useError } from '@/hooks/useError';
 import { useSession } from '@/hooks/useSession';
 import { useTimeRemaining } from '@/hooks/useTimeRemaining';
+import { supabase } from '@/lib/database';
 
 export default function VotePage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -37,12 +38,21 @@ export default function VotePage() {
     try {
       const data = await getRoomData(roomId);
       setRoomData(data);
+
+      // 現在の参加者が投票済みかどうかを確認
+      const session = restoreSession(roomId);
+      if (session?.participantId) {
+        const isVoted =
+          data.votedParticipantIds?.includes(session.participantId) || false;
+        // 投票がクリアされた場合（配列が空 or 該当IDなし）は必ずfalseに設定
+        setHasVoted(isVoted);
+      }
     } catch (error) {
       handleError(error, 'ルーム情報の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, handleError, setRoomData]);
+  }, [roomId, handleError, restoreSession]);
 
   // 投票実行
   const handleVote = async () => {
@@ -86,7 +96,9 @@ export default function VotePage() {
 
   // 参加者追加（投票キャンセル）
   const handleAddParticipant = async () => {
-    const confirmed = window.confirm('今回の投票を無効にして、参加ページに戻りますがよろしいですか？');
+    const confirmed = window.confirm(
+      '今回の投票を無効にして、参加ページに戻りますがよろしいですか？'
+    );
     if (!confirmed) return;
 
     const currentParticipantId = restoreSession(roomId)?.participantId;
@@ -113,25 +125,48 @@ export default function VotePage() {
       return;
     }
 
+    // 投票画面に来た時点でhasVotedをリセット（投票やり直し対応）
+    setHasVoted(false);
+
     fetchRoomData();
 
-    // Server-Sent Events接続を開始（ルーム用）
-    const roomEventSource = new EventSource(`/api/rooms/${roomId}/events`);
-
-    roomEventSource.addEventListener('room-update', event => {
-      try {
-        const data = JSON.parse(event.data);
-        // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
-        if (data.room.status === 'waiting') {
-          router.push(`/rooms/${roomId}`);
+    // Supabase Realtime購読を開始
+    const roomSubscription = supabase
+      .channel(`vote-room:${roomId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rooms',
+          filter: `id=eq.${roomId}`,
+        },
+        (payload: { new?: { status?: string } }) => {
+          console.log('Vote page room update:', payload);
+          fetchRoomData();
+          // ルームステータスが'waiting'に戻った場合、ルーム画面に遷移
+          if (payload.new?.status === 'waiting') {
+            router.push(`/rooms/${roomId}`);
+          }
         }
-      } catch (error) {
-        handleError(error, 'SSEルームデータパースエラー');
-      }
-    });
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload: unknown) => {
+          console.log('Vote page votes update:', payload);
+          fetchRoomData();
+        }
+      )
+      .subscribe();
 
     return () => {
-      roomEventSource.close();
+      supabase.removeChannel(roomSubscription);
     };
   }, [roomId, restoreSession, setError, fetchRoomData, router, handleError]);
 

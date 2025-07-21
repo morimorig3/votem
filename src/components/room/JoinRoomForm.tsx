@@ -1,10 +1,4 @@
-import {
-  Stack,
-  Heading,
-  Text,
-  Input,
-  Button,
-} from '@chakra-ui/react';
+import { Stack, Heading, Text, Input, Button } from '@chakra-ui/react';
 import { FormEvent } from 'react';
 
 interface JoinRoomFormProps {
@@ -52,10 +46,7 @@ export default function JoinRoomForm({
             w="100%"
             loading={isJoining}
             loadingText="参加中..."
-            disabled={
-              !newParticipantName.trim() ||
-              roomStatus !== 'waiting'
-            }
+            disabled={!newParticipantName.trim() || roomStatus !== 'waiting'}
           >
             参加する
           </Button>

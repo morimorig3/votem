@@ -28,43 +28,50 @@
 ### 開発環境セットアップ
 
 1. **リポジトリのクローン**
+
    ```bash
    git clone <repository-url>
    cd votem
    ```
 
 2. **Docker起動**
+
    ```bash
    docker-compose up -d
    ```
 
 3. **依存関係のインストール**
+
    ```bash
    npm install
    ```
 
 4. **環境変数の設定**
+
    ```bash
    cp .env.local
    ```
-   
+
    `.env.local`を編集して以下を設定：
+
    ```env
    DATABASE_URL=postgresql://user:password@localhost:5432/votem
    ```
 
 5. **データベース初期化**
+
    ```bash
    npm run db:init
    ```
 
 6. **開発サーバー起動**
+
    ```bash
    npm run dev
    ```
 
 7. **ブラウザでアクセス**
-   
+
    [http://localhost:3000](http://localhost:3000) を開く
 
 ### 使用可能なコマンド
@@ -114,6 +121,7 @@ src/
 ## データベーススキーマ
 
 ### rooms
+
 - `id`: UUID (Primary Key)
 - `title`: 投票タイトル
 - `created_at`: 作成日時
@@ -121,12 +129,14 @@ src/
 - `status`: ステータス ('waiting' | 'voting' | 'completed')
 
 ### participants
+
 - `id`: UUID (Primary Key)
 - `room_id`: ルームID (Foreign Key)
 - `name`: 参加者名
 - `joined_at`: 参加日時
 
 ### votes
+
 - `id`: UUID (Primary Key)
 - `room_id`: ルームID (Foreign Key)
 - `voter_id`: 投票者ID (Foreign Key)

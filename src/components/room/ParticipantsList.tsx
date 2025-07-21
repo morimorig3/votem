@@ -1,10 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-  Badge,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, Badge } from '@chakra-ui/react';
 import { Participant } from '@/types/database';
 
 interface ParticipantsListProps {
@@ -21,9 +15,7 @@ export default function ParticipantsList({
   return (
     <Box bg="white" p={6} borderRadius="lg" shadow="sm">
       <Stack gap={4}>
-        <Heading size="md">
-          参加者一覧 ({participants.length}人)
-        </Heading>
+        <Heading size="md">参加者一覧 ({participants.length}人)</Heading>
 
         {participants.length === 0 ? (
           <Text color="gray.500" textAlign="center" py={8}>
@@ -36,9 +28,7 @@ export default function ParticipantsList({
                 key={participant.id}
                 p={3}
                 bg={
-                  currentParticipant === participant.id
-                    ? 'blue.50'
-                    : 'gray.50'
+                  currentParticipant === participant.id ? 'blue.50' : 'gray.50'
                 }
                 borderRadius="md"
                 border={
@@ -52,11 +42,7 @@ export default function ParticipantsList({
                     : 'gray.200'
                 }
               >
-                <Stack
-                  direction="row"
-                  justify="space-between"
-                  align="center"
-                >
+                <Stack direction="row" justify="space-between" align="center">
                   <Text fontWeight="medium">
                     {index + 1}. {participant.name}
                   </Text>

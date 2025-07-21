@@ -1,34 +1,30 @@
-import { Pool } from 'pg';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-// データベース接続プール
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });
-
-// データベース接続関数
-export async function query(text: string, params?: unknown[]) {
-  const start = Date.now();
-  try {
-    const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log('Executed query', { text, duration, rows: res.rowCount });
-    return res;
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
-  }
-}
 
 // データベース接続テスト
 export async function testConnection() {
   try {
-    const result = await query('SELECT NOW() as current_time');
-    console.log('Database connected successfully:', result.rows[0]);
+    const { error } = await supabase.from('rooms').select('id').limit(1);
+
+    if (error) {
+      console.error('Database connection failed:', error);
+      return false;
+    }
+
+    console.log('Database connected successfully');
     return true;
   } catch (error) {
     console.error('Database connection failed:', error);
@@ -36,33 +32,25 @@ export async function testConnection() {
   }
 }
 
-// データベース初期化（テーブル作成）
-export async function initializeDatabase() {
-  try {
-    const sqlPath = path.join(process.cwd(), 'scripts', 'init-db.sql');
-    const sql = fs.readFileSync(sqlPath, 'utf8');
-
-    await query(sql);
-    console.log('Database initialized successfully');
-    return true;
-  } catch (error) {
-    console.error('Database initialization failed:', error);
-    return false;
-  }
-}
-
 // 期限切れルームの削除
 export async function cleanupExpiredRooms() {
   try {
-    const result = await query(
-      'DELETE FROM rooms WHERE expires_at < CURRENT_TIMESTAMP'
-    );
-    console.log(`Cleaned up ${result.rowCount} expired rooms`);
-    return result.rowCount;
+    const { count, error } = await supabase
+      .from('rooms')
+      .delete({ count: 'exact' })
+      .lt('expires_at', new Date().toISOString());
+
+    if (error) {
+      console.error('Cleanup failed:', error);
+      return 0;
+    }
+
+    console.log(`Cleaned up ${count || 0} expired rooms`);
+    return count || 0;
   } catch (error) {
     console.error('Cleanup failed:', error);
     return 0;
   }
 }
 
-export default pool;
+export default supabase;

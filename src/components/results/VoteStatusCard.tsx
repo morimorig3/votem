@@ -1,9 +1,4 @@
-import {
-  Box,
-  Stack,
-  Heading,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Stack, Heading, Text } from '@chakra-ui/react';
 import { VoteStatus } from '@/types/database';
 
 interface VoteStatusCardProps {
@@ -15,9 +10,10 @@ export default function VoteStatusCard({
   voteStatus,
   roomStatus,
 }: VoteStatusCardProps) {
-  const progressPercentage = voteStatus.totalParticipants > 0
-    ? (voteStatus.votedCount / voteStatus.totalParticipants) * 100
-    : 0;
+  const progressPercentage =
+    voteStatus.totalParticipants > 0
+      ? (voteStatus.votedCount / voteStatus.totalParticipants) * 100
+      : 0;
 
   return (
     <Box bg="white" p={6} borderRadius="lg" shadow="sm">

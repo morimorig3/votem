@@ -11,6 +11,7 @@ import { RoomData, Participant } from '@/types/database';
 import { useError } from '@/hooks/useError';
 import { useSession } from '@/hooks/useSession';
 import { useTimeRemaining } from '@/hooks/useTimeRemaining';
+import { supabase } from '@/lib/database';
 
 export default function RoomPage() {
   const [roomData, setRoomData] = useState<RoomData | null>(null);
@@ -55,7 +56,13 @@ export default function RoomPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, currentParticipant, clearSession, handleError]);
+  }, [
+    roomId,
+    currentParticipant,
+    clearSession,
+    handleError,
+    setCurrentParticipant,
+  ]);
 
   // 参加者追加
   const handleJoinRoom = async (e: React.FormEvent) => {
@@ -78,9 +85,6 @@ export default function RoomPage() {
 
       // セッション情報を保存
       saveSession(data.participant.id, data.participant.name, roomId);
-
-      // ルーム情報を再取得
-      await fetchRoomData();
     } catch (error) {
       handleError(error, '参加に失敗しました');
     } finally {
@@ -133,8 +137,6 @@ export default function RoomPage() {
   };
 
   useEffect(() => {
-    console.log('effect');
-
     // セッション復元を試行
     const session = restoreSession(roomId);
     if (session) {
@@ -144,73 +146,71 @@ export default function RoomPage() {
     // 初回データ取得
     fetchRoomData();
 
-    // Server-Sent Events接続を開始
-    const eventSource = new EventSource(`/api/rooms/${roomId}/events`);
+    // Supabase Realtime購読を開始
+    const roomSubscription = supabase
+      .channel(`room:${roomId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rooms',
+          filter: `id=eq.${roomId}`,
+        },
+        (payload: { new?: { status?: string } }) => {
+          console.log('Room update:', payload);
 
-    eventSource.addEventListener('room-update', event => {
-      try {
-        const data = JSON.parse(event.data);
-        const previousStatus = roomData?.room.status;
-        setRoomData(data);
-        setIsLoading(false);
-
-        // セッションで復元した参加者が実際にルームに存在するかチェック
-        if (currentParticipant && data.participants) {
-          const participantExists = data.participants.some(
-            (p: Participant) => p.id === currentParticipant
-          );
-          if (!participantExists) {
-            clearSession(roomId);
-            setCurrentParticipant(null);
+          // ルームステータスが'voting'に変更された場合、自動で投票画面に遷移
+          if (payload.new?.status === 'voting' && currentParticipant) {
+            router.push(`/rooms/${roomId}/vote`);
+          } else {
+            fetchRoomData();
           }
         }
-
-        // ルームステータスが'voting'に変更された場合、自動で投票画面に遷移
-        if (
-          previousStatus === 'waiting' &&
-          data.room.status === 'voting' &&
-          currentParticipant
-        ) {
-          router.push(`/rooms/${roomId}/vote`);
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'participants',
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload: unknown) => {
+          console.log('Participant update:', payload);
+          fetchRoomData();
         }
-      } catch (error) {
-        handleError(error, 'SSEデータパースエラー');
-      }
-    });
-
-    eventSource.addEventListener('error', event => {
-      try {
-        const data = JSON.parse((event as MessageEvent).data);
-        handleError(new Error(data.error));
-      } catch {
-        handleError(new Error('リアルタイム更新の接続に失敗しました'));
-      }
-    });
-
-    eventSource.addEventListener('expired', () => {
-      handleError(new Error('ルームの有効期限が切れました'));
-    });
-
-    eventSource.onerror = () => {
-      handleError(new Error('SSE接続が切断されました'));
-      // フォールバック：通常のHTTPリクエストに切り替え
-      eventSource.close();
-      const fallbackInterval = setInterval(fetchRoomData, 10000);
-      return () => clearInterval(fallbackInterval);
-    };
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload: unknown) => {
+          console.log('Vote update:', payload);
+          fetchRoomData();
+        }
+      )
+      .subscribe((status: string) => {
+        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('リアルタイム購読が開始されました');
+        }
+      });
 
     return () => {
-      eventSource.close();
+      console.log('Cleaning up subscription');
+      supabase.removeChannel(roomSubscription);
     };
   }, [
     roomId,
     fetchRoomData,
     restoreSession,
-    currentParticipant,
-    clearSession,
-    handleError,
     setCurrentParticipant,
-    roomData?.room.status,
+    currentParticipant,
     router,
   ]);
 

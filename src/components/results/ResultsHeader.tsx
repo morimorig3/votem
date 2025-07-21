@@ -1,9 +1,4 @@
-import {
-  Stack,
-  Heading,
-  Text,
-  Badge,
-} from '@chakra-ui/react';
+import { Stack, Heading, Text, Badge } from '@chakra-ui/react';
 import AppHeader from '@/components/AppHeader';
 
 interface ResultsHeaderProps {
@@ -55,11 +50,7 @@ export default function ResultsHeader({
         justify="center"
         align="center"
       >
-        <Badge
-          colorScheme={getStatusColor(roomStatus)}
-          p={2}
-          borderRadius="md"
-        >
+        <Badge colorScheme={getStatusColor(roomStatus)} p={2} borderRadius="md">
           {getStatusLabel(roomStatus)}
         </Badge>
 
