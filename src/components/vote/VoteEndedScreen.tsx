@@ -12,7 +12,7 @@ export default function VoteEndedScreen({
   return (
     <PageLayout maxWidth="lg" padding={20}>
       <Stack gap={8} textAlign="center">
-        <AppHeader size="xl" />
+        <AppHeader />
 
         <Box bg="white" p={8} borderRadius="lg" shadow="sm">
           <Stack gap={4}>

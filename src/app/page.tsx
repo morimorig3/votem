@@ -19,7 +19,7 @@ export default function Home() {
         <Stack gap={12}>
           {/* ヘッダー */}
           <Stack gap={6} textAlign="center">
-            <AppHeader size="2xl" />
+            <AppHeader isShowTitle />
           </Stack>
 
           {/* CTA */}

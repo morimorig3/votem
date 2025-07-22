@@ -71,9 +71,7 @@ export default function VotePage() {
       setHasVoted(true);
 
       // 結果画面に遷移
-      setTimeout(() => {
-        router.push(`/rooms/${roomId}/results`);
-      }, 1000);
+      router.push(`/rooms/${roomId}/results`);
     } catch (error) {
       handleError(error, '投票に失敗しました');
     } finally {

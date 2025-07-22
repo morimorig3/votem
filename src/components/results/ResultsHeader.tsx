@@ -40,7 +40,7 @@ export default function ResultsHeader({
 
   return (
     <Stack gap={4} textAlign="center">
-      <AppHeader size="lg" />
+      <AppHeader />
 
       <Heading size="xl">{roomTitle}</Heading>
 
