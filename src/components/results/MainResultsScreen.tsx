@@ -26,11 +26,7 @@ export default function MainResultsScreen({
           roomTitle={resultsData.room.title}
           roomStatus={resultsData.room.status}
           timeRemaining={timeRemaining}
-        />
-        <VoteResultsList
-          results={resultsData.results}
-          winners={resultsData.winners}
-          votedCount={resultsData.voteStatus.votedCount}
+          voteStatus={resultsData.voteStatus}
         />
         <VoteStatusCard
           voteStatus={resultsData.voteStatus}
@@ -42,6 +38,11 @@ export default function MainResultsScreen({
           isTimeExpired={timeRemaining === '期限切れ'}
           isRestarting={isRestarting}
           onRestartVoting={onRestartVoting}
+        />
+        <VoteResultsList
+          results={resultsData.results}
+          winners={resultsData.winners}
+          votedCount={resultsData.voteStatus.votedCount}
         />
       </Stack>
     </PageLayout>

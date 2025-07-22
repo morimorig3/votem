@@ -12,7 +12,7 @@ export default function VoteHeader({
 }: VoteHeaderProps) {
   return (
     <Stack gap={4} textAlign="center">
-      <AppHeader size="lg" />
+      <AppHeader isShowTitle={true} />
 
       <Heading size="xl">{roomTitle}</Heading>
 
@@ -31,7 +31,7 @@ export default function VoteHeader({
             fontSize="sm"
             color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
           >
-            残り時間: {timeRemaining}
+            ルームの有効時間: {timeRemaining}
           </Text>
         )}
       </Stack>

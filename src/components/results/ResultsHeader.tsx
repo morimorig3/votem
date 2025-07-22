@@ -5,13 +5,27 @@ interface ResultsHeaderProps {
   roomTitle: string;
   roomStatus: 'waiting' | 'voting' | 'completed';
   timeRemaining: string | null;
+  voteStatus?: {
+    isComplete: boolean;
+  };
 }
 
 export default function ResultsHeader({
   roomTitle,
   roomStatus,
   timeRemaining,
+  voteStatus,
 }: ResultsHeaderProps) {
+  // 投票完了状況を考慮した実際のステータスを決定
+  const getActualStatus = () => {
+    if (voteStatus?.isComplete || timeRemaining === '期限切れ') {
+      return 'completed';
+    }
+    return roomStatus;
+  };
+
+  const actualStatus = getActualStatus();
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'waiting':
@@ -50,8 +64,12 @@ export default function ResultsHeader({
         justify="center"
         align="center"
       >
-        <Badge colorScheme={getStatusColor(roomStatus)} p={2} borderRadius="md">
-          {getStatusLabel(roomStatus)}
+        <Badge
+          colorScheme={getStatusColor(actualStatus)}
+          p={2}
+          borderRadius="md"
+        >
+          {getStatusLabel(actualStatus)}
         </Badge>
 
         {timeRemaining && (
@@ -59,7 +77,7 @@ export default function ResultsHeader({
             fontSize="sm"
             color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
           >
-            残り時間: {timeRemaining}
+            ルームの有効時間: {timeRemaining}
           </Text>
         )}
       </Stack>
