@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'VoTem - 匿名投票アプリ',
-  description: 'チームの決定を簡単に。匿名投票でスムーズな意思決定を。',
+  title: '投票アプリ',
+  description: 'URLを共有してリアルタイム投票をすることができます。',
 };
 
 export default function RootLayout({
