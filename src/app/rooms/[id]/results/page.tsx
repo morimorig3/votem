@@ -79,7 +79,7 @@ export default function ResultsPage() {
           table: 'votes',
           filter: `room_id=eq.${roomId}`,
         },
-        (payload: unknown) => {
+        () => {
           fetchResults();
         }
       )

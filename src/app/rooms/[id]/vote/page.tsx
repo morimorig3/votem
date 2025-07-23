@@ -155,7 +155,7 @@ export default function VotePage() {
           table: 'votes',
           filter: `room_id=eq.${roomId}`,
         },
-        (payload: unknown) => {
+        () => {
           fetchRoomData();
         }
       )

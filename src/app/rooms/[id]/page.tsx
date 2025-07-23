@@ -174,7 +174,7 @@ export default function RoomPage() {
           table: 'participants',
           filter: `room_id=eq.${roomId}`,
         },
-        (payload: unknown) => {
+        () => {
           fetchRoomData();
         }
       )
@@ -186,11 +186,11 @@ export default function RoomPage() {
           table: 'votes',
           filter: `room_id=eq.${roomId}`,
         },
-        (payload: unknown) => {
+        () => {
           fetchRoomData();
         }
       )
-      .subscribe((status: string) => {});
+      .subscribe();
 
     return () => {
       supabase.removeChannel(roomSubscription);

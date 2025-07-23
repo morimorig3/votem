@@ -108,7 +108,7 @@ export default function VoteChart({
       },
       tooltip: {
         callbacks: {
-          label: function (context: any) {
+          label: function (context: { parsed: { y: number } }) {
             const voteCount = context.parsed.y;
             const percentage =
               votedCount > 0 ? Math.round((voteCount / votedCount) * 100) : 0;
