@@ -47,7 +47,7 @@ export default function RoomHeader({
             fontSize="sm"
             color={timeRemaining === '期限切れ' ? 'red.500' : 'gray.600'}
           >
-            残り時間: {timeRemaining}
+            ルームの有効時間: {timeRemaining}
           </Text>
         )}
       </Stack>

@@ -1,121 +1,68 @@
 # 投票アプリ
 
-チームの決定を簡単に。匿名投票でスムーズな意思決定を支援するWebアプリケーションです。
+URLを共有するだけで簡単に匿名投票ができるWebアプリケーションです。
 
-## 機能
+## 使い方
 
-- **投票ルーム作成**: チームリーダーが投票ルームを作成
-- **匿名投票**: 参加者が匿名で投票を実施
-- **リアルタイム更新**: 投票状況と結果をリアルタイムで表示
-- **投票やり直し**: 全員投票完了後に投票を再実行可能
-- **参加者追加**: 投票中でも新しい参加者を追加可能
+1. **ルーム作成**: 投票テーマを設定してルームを作成
+2. **URL共有**: 生成されたURLを参加者に共有
+3. **参加者登録**: 各参加者が名前を入力して参加
+4. **投票開始**: 投票を開始
+5. **匿名投票**: 参加者が他の参加者に投票
+6. **結果確認**: 棒グラフで結果を表示
 
 ## 技術スタック
 
 - **フロントエンド**: Next.js 15 + TypeScript + Chakra UI v3
+- **グラフ表示**: Chart.js + react-chartjs-2
 - **バックエンド**: Next.js API Routes
-- **データベース**: Neon PostgreSQL
-- **リアルタイム通信**: Server-Sent Events (SSE)
-
-## 始め方
-
-### 前提条件
-
-- Docker Desktop
-- Node.js 18以上
-- PostgreSQL
-
-### 開発環境セットアップ
-
-1. **リポジトリのクローン**
-
-   ```bash
-   git clone <repository-url>
-   cd votem
-   ```
-
-2. **Docker起動**
-
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **依存関係のインストール**
-
-   ```bash
-   npm install
-   ```
-
-4. **環境変数の設定**
-
-   ```bash
-   cp .env.local
-   ```
-
-   `.env.local`を編集して以下を設定：
-
-   ```env
-   DATABASE_URL=postgresql://user:password@localhost:5432/votem
-   ```
-
-5. **データベース初期化**
-
-   ```bash
-   npm run db:init
-   ```
-
-6. **開発サーバー起動**
-
-   ```bash
-   npm run dev
-   ```
-
-7. **ブラウザでアクセス**
-
-   [http://localhost:3000](http://localhost:3000) を開く
-
-### 使用可能なコマンド
-
-```bash
-# 開発サーバー起動
-npm run dev
-
-# ビルド
-npm run build
-
-# 本番サーバー起動
-npm start
-
-# リント
-npm run lint
-
-# データベースクリーンアップ
-npm run db:clean
-
-# 型チェック
-npm run type-check
-```
+- **データベース**: Supabase (PostgreSQL)
+- **デプロイ**: Vercel
+- **その他**: Framer Motion, Prettier, ESLint
 
 ## プロジェクト構造
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── api/               # API Routes
-│   │   └── rooms/         # ルーム関連API
-│   ├── create/            # ルーム作成ページ
-│   └── rooms/[id]/        # ルーム関連ページ
-├── components/            # React コンポーネント
-│   ├── room/              # ルーム画面用
-│   ├── vote/              # 投票画面用
-│   └── results/           # 結果画面用
-├── lib/                   # ユーティリティ
-│   ├── database.ts        # DB接続
-│   ├── vercelSSE.ts       # SSE管理
-│   └── vercelEvents.ts    # イベント管理
-├── hooks/                 # カスタムフック
-├── service/               # API呼び出し
-└── types/                 # TypeScript型定義
+├── app/                          # Next.js App Router
+│   ├── create/                   # ルーム作成ページ
+│   ├── rooms/[id]/               # ルーム関連ページ
+│   │   ├── page.tsx              # ルーム待機画面
+│   │   ├── vote/page.tsx         # 投票画面
+│   │   └── results/page.tsx      # 結果画面
+│   ├── layout.tsx                # ルートレイアウト
+│   ├── page.tsx                  # ホーム画面
+│   └── providers.tsx             # Chakra UI Provider
+├── components/                   # React コンポーネント
+│   ├── AppHeader.tsx             # 投票アイコン付きヘッダー
+│   ├── PageLayout.tsx            # 共通レイアウト
+│   ├── room/                     # ルーム画面コンポーネント
+│   │   ├── MainRoomScreen.tsx    # メインルーム画面
+│   │   ├── JoinRoomForm.tsx      # 参加フォーム
+│   │   ├── ParticipantsList.tsx  # 参加者リスト
+│   │   └── VotingActions.tsx     # 投票開始ボタン
+│   ├── vote/                     # 投票画面コンポーネント
+│   │   ├── MainVoteScreen.tsx    # メイン投票画面
+│   │   ├── ParticipantSelector.tsx # 参加者選択
+│   │   └── VoteActions.tsx       # 投票ボタン
+│   └── results/                  # 結果画面コンポーネント
+│       ├── MainResultsScreen.tsx # メイン結果画面
+│       ├── VoteChart.tsx         # Chart.js棒グラフ
+│       ├── VoteResultsList.tsx   # 結果リスト（Chart.jsのみ）
+│       ├── VoteStatusCard.tsx    # 投票状況（シンプルテキスト）
+│       └── ResultsActions.tsx    # 再投票ボタン
+├── hooks/                        # カスタムフック
+│   ├── useError.ts               # エラーハンドリング
+│   ├── useSession.ts             # セッション管理
+│   └── useTimeRemaining.ts       # 残り時間計算
+├── service/                      # API呼び出しサービス
+│   ├── roomService.ts            # ルーム関連API
+│   ├── participantService.ts     # 参加者関連API
+│   └── voteService.ts            # 投票関連API
+├── lib/                          # ユーティリティ
+│   └── database.ts               # Supabase接続
+└── types/                        # TypeScript型定義
+    └── database.ts               # データベース型定義
 ```
 
 ## データベーススキーマ
@@ -123,25 +70,49 @@ src/
 ### rooms
 
 - `id`: UUID (Primary Key)
-- `title`: 投票タイトル
-- `created_at`: 作成日時
-- `expires_at`: 有効期限 (作成から30分後)
-- `status`: ステータス ('waiting' | 'voting' | 'completed')
+- `title`: string - 投票ルームのタイトル
+- `created_at`: timestamp - ルーム作成日時
+- `expires_at`: timestamp - 有効期限（作成から30分後）
+- `status`: enum - ルーム状態（'waiting' | 'voting' | 'completed'）
 
 ### participants
 
 - `id`: UUID (Primary Key)
-- `room_id`: ルームID (Foreign Key)
-- `name`: 参加者名
-- `joined_at`: 参加日時
+- `room_id`: UUID (Foreign Key) - 所属ルーム
+- `name`: string - 参加者名
+- `joined_at`: timestamp - 参加日時
 
 ### votes
 
 - `id`: UUID (Primary Key)
-- `room_id`: ルームID (Foreign Key)
-- `voter_id`: 投票者ID (Foreign Key)
-- `candidate_id`: 候補者ID (Foreign Key)
-- `created_at`: 投票日時
+- `room_id`: UUID (Foreign Key) - 投票対象ルーム
+- `voter_id`: UUID (Foreign Key) - 投票者
+- `candidate_id`: UUID (Foreign Key) - 被投票者
+- `created_at`: timestamp - 投票日時
+
+## 主要機能の実装詳細
+
+### Chart.js棒グラフ
+
+- `src/components/results/VoteChart.tsx`でChart.jsを使用
+- 得票数降順で表示、当選者は金色でハイライト
+- 人数が少ない時でも適切な棒の太さに自動調整
+- ホバーで詳細情報（得票数・得票率）を表示
+
+### 投票状況表示
+
+- リアルタイムで投票完了状況を監視
+- 「残りX人の投票待ち」として簡潔に表示
+- 全員投票完了時は「✅ 全員の投票が完了しました」
+
+### 投票アイコンヘッダー
+
+- SVGアイコンでアプリのテーマを視覚化
+- 48x48pxサイズで適切な視認性を確保
+
+## デプロイ
+
+このアプリケーションはVercelでホストされており、Supabaseをデータベースとして使用しています。
 
 ## ライセンス
 
